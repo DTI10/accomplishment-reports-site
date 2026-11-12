@@ -117,11 +117,36 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Verify the admin token
+        if: steps.token.outputs.available == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_PUBLISH_TOKEN }}
+        run: |
+          login=$(gh api user --jq '.login')
+          permissions=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.permissions')
+          is_admin=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.permissions.admin')
+
+          echo "Token user: $login"
+          echo "Repository permissions: $permissions"
+          echo "- Admin token user: \`$login\` (\`$permissions\`)" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$is_admin" != "true" ]; then
+            echo "::error::$login does not have admin access to $GITHUB_REPOSITORY. AUTO_PUBLISH_TOKEN must belong to a repository admin."
+            exit 1
+          fi
+
       - name: Approve and merge
         if: steps.token.outputs.available == 'true'
         env:
           GH_TOKEN: ${{ secrets.AUTO_PUBLISH_TOKEN }}
         run: |
           gh pr review "$PR_NUMBER" --approve --body "Auto-approved: the auto-publish setting is enabled and this PR only changes articles or news." || true
-          gh pr merge "$PR_NUMBER" --squash --admin --delete-branch
+
+          # Try a normal merge first. If branch protection blocks it, retry with
+          # the admin bypass. The token owner must be a repository admin and the
+          # token needs Pull requests: Read and write.
+          if ! gh pr merge "$PR_NUMBER" --squash --delete-branch; then
+            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch
+          fi
+
           echo "- Merged: PR #$PR_NUMBER was auto-published." >> "$GITHUB_STEP_SUMMARY"

@@ -31,7 +31,9 @@ database. Roles are enforced by GitHub teams and branch protection:
 
 - **Editors** — members of the `editors` GitHub team with repository **Write**
   access. They can create and edit articles/news, save them as pull requests,
-  and mark them as ready. They cannot merge to `master`.
+  and mark them as ready. They cannot merge to `master`, but GitHub Write
+  access does allow them to close any PR and delete its branch; see
+  [Pull request deletion and recovery](#pull-request-deletion-and-recovery).
 - **Admins** — members of the `admins` GitHub team with repository **Admin** or
   **Maintain** access. They review and merge/publish pull requests.
 
@@ -61,6 +63,34 @@ backend. The **Settings** singleton is therefore visible in the sidebar to
 everyone, but changes to it can only be merged by admins because of the
 CODEOWNERS + branch protection setup above. Later versions of Sveltia's
 Additions feature are expected to add native role-based UI access.
+
+### Pull request deletion and recovery
+
+Editors with **Write** access can close any pull request and delete its
+`cms/**` branch. Sveltia’s **Discard** action on the Editorial Workflow page
+uses those GitHub permissions, so the CMS cannot stop an editor from
+discarding someone else’s PR. `delete: false` does not help: it disables
+deleting entries, but discarding unpublished changes is still allowed.
+
+To make accidental or malicious discards recoverable:
+
+1. `.github/workflows/restore-closed-prs.yml` runs when a PR is closed without
+   merging. If the closer is not the PR author and does not have
+   admin/maintain access, it:
+   - restores the deleted branch from the PR’s head commit;
+   - reopens the pull request;
+   - comments on the PR explaining why it was reopened.
+2. Add a repository ruleset targeting `cms/**` that restricts branch deletion
+   to admins, so the branch survives long enough to restore.
+3. Keep `AUTO_PUBLISH_TOKEN` configured. The workflow uses it for the restore,
+   falling back to `GITHUB_TOKEN` if it is missing.
+
+The workflow uses `pull_request_target` because it needs secrets. It never
+checks out or runs code from the pull request.
+
+This is recovery, not prevention. For true prevention, editors need
+**Read** access and fork-based Open Authoring, which changes the review flow
+and auto-publish setup.
 
 ## Settings and auto-publishing
 
@@ -101,9 +131,15 @@ Trigger a new event by re-saving the entry, removing/re-adding the
 if the workflow uses that environment).
 
 To enable the automation, add a repository secret named `AUTO_PUBLISH_TOKEN`.
-Use a personal access token from an admin account with **Contents** and
-**Pull requests** read/write access. Without the secret, the workflow exits
-without merging.
+Use a personal access token from an **admin** account with:
+
+- **Contents:** Read and write
+- **Pull requests:** Read and write
+- **Metadata:** Read (added automatically)
+
+Classic tokens need the `repo` scope. If the organization enforces SSO, authorize
+the token for the organization. Fine-grained tokens must also be scoped to this
+repository. Without the secret, the workflow exits without merging.
 
 ## Components
 
