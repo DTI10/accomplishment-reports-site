@@ -81,6 +81,25 @@ approves and merges article and news pull requests that:
 
 Settings and code changes are never auto-published.
 
+### Testing auto-publish
+
+1. Confirm `auto_publish: true` is on `master`.
+2. Push the workflow changes to `master` first, so GitHub registers the
+   `workflow_dispatch` trigger.
+3. Either:
+   - create a throwaway article or news item from an **editor** account, save
+     it, and mark it **Ready**; or
+   - open **Actions → Auto-publish editor posts → Run workflow** and enter the
+     number of an open, ready PR.
+4. Open the workflow run and check the **Summary** tab. It reports whether the
+   PR was merged or why it was skipped.
+
+Enabling the toggle does not retroactively process PRs that were already ready.
+Trigger a new event by re-saving the entry, removing/re-adding the
+`sveltia-cms/pending_publish` label, or using the manual workflow run.
+`AUTO_PUBLISH_TOKEN` must be a **repository** secret (or an environment secret
+if the workflow uses that environment).
+
 To enable the automation, add a repository secret named `AUTO_PUBLISH_TOKEN`.
 Use a personal access token from an admin account with **Contents** and
 **Pull requests** read/write access. Without the secret, the workflow exits
