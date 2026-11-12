@@ -1,275 +1,48 @@
 ---
-import ImageCarousel from '../components/ImageCarousel.astro';
-import PostCard from '../components/PostCard.astro';
+import FeaturedHero, { type HeroItem } from '../components/gallery/FeaturedHero';
+import NewsEvents from '../components/NewsEvents.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getPublishedPosts } from '../lib/content';
+import { formatPostDate, getPostHref, getProvinces, getPublishedPosts } from '../lib/content';
 
 const articles = await getPublishedPosts('articles');
 const news = await getPublishedPosts('news');
-const allPosts = [...articles, ...news].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const all = [...articles, ...news].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const [featured, ...otherArticles] = articles;
-const latestArticles = otherArticles.slice(0, 5);
-const latestNews = news.slice(0, 3);
-
-const carouselItems = allPosts
-	.flatMap((post) => {
-		if (post.data.gallery.length > 0) return post.data.gallery;
-		if (post.data.image) return [{ image: post.data.image, caption: post.data.title }];
-		return [];
-	})
-	.slice(0, 6);
-
-const topicCount = new Set(allPosts.flatMap((post) => post.data.tags)).size;
+const featured: HeroItem[] = all.slice(0, 5).map((post) => ({
+	id: `${post.collection}-${post.id}`,
+	tag: post.collection === 'news' ? 'News' : 'Article',
+	provinces: getProvinces(post.data),
+	date: formatPostDate(post.data.date, 'long'),
+	title: post.data.title,
+	summary: post.data.description ?? '',
+	href: getPostHref(post),
+	alt: post.data.title,
+	src: post.data.image || post.data.gallery[0]?.image || undefined,
+}));
 ---
 
 <BaseLayout
-	title="DTI Accomplishments"
-	description="Read the latest articles, news, and accomplishments from the Department of Trade and Industry."
+	hero
+	title="DTI Region 10 Accomplishment Report"
+	description="Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao): news, programs, and results."
 >
-	<section class="hero">
-		<div class="container hero-inner">
-			<div class="hero-copy">
-				<p class="eyebrow">Latest updates</p>
-				<h1>Stories of progress,<br /> built by Filipinos.</h1>
-				<p class="hero-lead">
-					Explore milestones, programs, and the people behind the Department of Trade and
-					Industry's work across the country.
-				</p>
-				<div class="hero-actions">
-					<a class="button" href="/articles">Browse articles</a>
-					<a class="button button--ghost" href="/news">Read the news</a>
+	{
+		featured.length > 0 ? (
+			<section id="top" class="featured-hero relative bg-navy-deep text-mist">
+				<h2 class="sr-only">Featured stories</h2>
+				<FeaturedHero client:load items={featured} />
+			</section>
+		) : (
+			<section id="top" class="relative isolate flex min-h-[80svh] items-end bg-navy text-mist">
+				<div class="shell pb-20 pt-40">
+					<h1 class="display text-[clamp(2.6rem,8vw,6rem)]">
+						DTI Region 10
+						<span class="block text-[0.5em] font-semibold text-mist/85" style="font-stretch:100%">Accomplishment Report</span>
+					</h1>
 				</div>
-				<dl class="hero-stats">
-					<div>
-						<dt>Published stories</dt>
-						<dd>{allPosts.length}</dd>
-					</div>
-					<div>
-						<dt>News updates</dt>
-						<dd>{news.length}</dd>
-					</div>
-					<div>
-						<dt>Topics covered</dt>
-						<dd>{topicCount}</dd>
-					</div>
-				</dl>
-			</div>
+			</section>
+		)
+	}
 
-			{
-				carouselItems.length > 0 && (
-					<div class="hero-carousel">
-						<ImageCarousel items={carouselItems} label="Featured images from our stories" />
-					</div>
-				)
-			}
-		</div>
-	</section>
-
-	<section class="section" id="articles">
-		<div class="container">
-			<div class="section-heading">
-				<div>
-					<p class="eyebrow">Articles</p>
-					<h2>Latest articles</h2>
-				</div>
-				<a class="section-link" href="/articles">View all <span aria-hidden="true">→</span></a>
-			</div>
-
-			{
-				articles.length === 0 ? (
-					<div class="empty-state">
-						<h3>No articles yet</h3>
-						<p>
-							Add an article through the <a href="/admin/">content manager</a> and it will
-							appear here.
-						</p>
-					</div>
-				) : (
-					<div class="post-grid">
-						{featured && <PostCard post={featured} featured />}
-						{latestArticles.map((post) => (
-							<PostCard post={post} />
-						))}
-					</div>
-				)
-			}
-		</div>
-	</section>
-
-	<section class="section news-section" id="news">
-		<div class="container">
-			<div class="section-heading">
-				<div>
-					<p class="eyebrow">News</p>
-					<h2>Latest news</h2>
-				</div>
-				<a class="section-link" href="/news">View all <span aria-hidden="true">→</span></a>
-			</div>
-
-			{
-				latestNews.length === 0 ? (
-					<div class="empty-state">
-						<h3>No news yet</h3>
-						<p>
-							Add a news post through the <a href="/admin/">content manager</a> and it will
-							appear here.
-						</p>
-					</div>
-				) : (
-					<div class="post-grid">
-						{latestNews.map((post) => (
-							<PostCard post={post} />
-						))}
-					</div>
-				)
-			}
-		</div>
-	</section>
+	<NewsEvents />
 </BaseLayout>
-
-<style>
-	.hero {
-		position: relative;
-		overflow: hidden;
-		background:
-			radial-gradient(circle at 85% 10%, rgb(29 111 209 / 12%), transparent 42%),
-			radial-gradient(circle at 10% 90%, rgb(227 160 8 / 10%), transparent 38%),
-			linear-gradient(180deg, #fff, var(--color-bg));
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.hero-inner {
-		display: grid;
-		grid-template-columns: 1.15fr 1fr;
-		align-items: center;
-		gap: 3rem;
-		padding-block: 4.5rem;
-	}
-
-	.hero h1 {
-		margin: 0 0 1.1rem;
-		font-size: clamp(2.4rem, 5vw, 3.7rem);
-		letter-spacing: -0.03em;
-	}
-
-	.hero-lead {
-		max-width: 34rem;
-		margin: 0 0 1.6rem;
-		color: var(--color-muted);
-		font-size: 1.08rem;
-	}
-
-	.hero-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.7rem;
-	}
-
-	.hero-stats {
-		display: flex;
-		gap: 2.5rem;
-		margin: 2.5rem 0 0;
-	}
-
-	.hero-stats div {
-		display: flex;
-		flex-direction: column-reverse;
-		gap: 0.15rem;
-	}
-
-	.hero-stats dt {
-		color: var(--color-muted);
-		font-size: 0.78rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-
-	.hero-stats dd {
-		margin: 0;
-		font-size: 1.9rem;
-		font-weight: 800;
-		color: var(--color-primary);
-		line-height: 1;
-	}
-
-	.hero-carousel {
-		min-width: 0;
-	}
-
-	.section-heading {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-end;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.8rem;
-	}
-
-	.section-heading h2 {
-		margin: 0;
-		font-size: clamp(1.7rem, 3vw, 2.2rem);
-	}
-
-	.section-heading .eyebrow {
-		margin-bottom: 0.55rem;
-	}
-
-	.section-link {
-		font-size: 0.9rem;
-		font-weight: 700;
-	}
-
-	.news-section {
-		background: linear-gradient(180deg, transparent, #eef3fb 18%, #eef3fb 82%, transparent);
-	}
-
-	.post-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-		gap: 1.5rem;
-	}
-
-	.post-grid > :global(.post-card--featured) {
-		grid-column: span 2;
-	}
-
-	.post-grid > :global(.post-card--featured) :global(.card-media) {
-		aspect-ratio: 21 / 9;
-	}
-
-	.empty-state {
-		padding: 3rem;
-		text-align: center;
-		background: var(--color-surface);
-		border: 1px dashed var(--color-border);
-		border-radius: var(--radius-lg);
-	}
-
-	.empty-state h3 {
-		margin-top: 0;
-	}
-
-	@media (max-width: 960px) {
-		.hero-inner {
-			grid-template-columns: 1fr;
-			padding-block: 3rem;
-		}
-
-		.hero-carousel {
-			max-width: 640px;
-		}
-	}
-
-	@media (max-width: 700px) {
-		.post-grid > :global(.post-card--featured) {
-			grid-column: span 1;
-		}
-	}
-
-	@media (max-width: 560px) {
-		.hero-stats {
-			gap: 1.5rem;
-		}
-	}
-</style>
