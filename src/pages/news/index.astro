@@ -1,0 +1,14 @@
+---
+import PostArchive from '../../components/PostArchive.astro';
+import { getPublishedPosts } from '../../lib/content';
+
+const posts = await getPublishedPosts('news');
+---
+
+<PostArchive
+	posts={posts}
+	eyebrow="News"
+	title="News"
+	description="Announcements, advisories, and the latest updates from the Department of Trade and Industry."
+	emptyMessage="No news has been published yet."
+/>

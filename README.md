@@ -1,43 +1,183 @@
-# Astro Starter Kit: Minimal
+# DTI Accomplishments
+
+An Astro site that renders articles and news authored through Sveltia CMS.
+
+## Content types
+
+| Type     | Folder            | URL                |
+| :------- | :---------------- | :----------------- |
+| Articles | `content/articles` | `/articles/<slug>/` |
+| News     | `content/news`     | `/news/<slug>/`     |
+
+Both content types support the same frontmatter:
+
+| Field         | Required | Description                                      |
+| :------------ | :------- | :----------------------------------------------- |
+| `title`       | yes      | Post title.                                      |
+| `date`        | yes      | Publication date (`YYYY-MM-DD`).                 |
+| `description` | no       | Short summary shown on cards.                    |
+| `author`      | no       | Author name.                                     |
+| `image`       | no       | Cover image path, e.g. `/media/photo.jpg`.       |
+| `gallery`     | no       | List of `{ image, caption }` items for carousel. |
+| `tags`        | no       | List of topic labels.                            |
+
+The Markdown body is rendered on the post page. Uploaded media is stored in
+`public/media/` and served from `/media/...`.
+
+## CMS accounts and roles
+
+Sveltia CMS is Git-based, so it uses GitHub accounts rather than its own user
+database. Roles are enforced by GitHub teams and branch protection:
+
+- **Editors** — members of the `editors` GitHub team with repository **Write**
+  access. They can create and edit articles/news, save them as pull requests,
+  and mark them as ready. They cannot merge to `master`.
+- **Admins** — members of the `admins` GitHub team with repository **Admin** or
+  **Maintain** access. They review and merge/publish pull requests.
+
+Configure the `master` branch protection/ruleset with:
+
+1. Require a pull request before merging.
+2. Require at least one approval.
+3. Require review from Code Owners.
+4. Restrict who can push/merge to the `admins` team (or add only `admins` to the
+   ruleset bypass list).
+
+`.github/CODEOWNERS` marks the admin-only areas: site settings, the CMS config,
+and the GitHub automation. Replace `@DTI10/admins` there with the real team
+handle if it differs.
+
+### Publishing workflow
+
+The CMS uses the Editorial Workflow (`publish_mode` in
+`public/admin/config.yml`):
+
+1. An editor saves an article or news item. Sveltia opens a pull request.
+2. The editor marks it **Ready**.
+3. An admin reviews and merges the pull request, which publishes the post.
+
+Sveltia does not provide role-based collection visibility with the GitHub
+backend. The **Settings** singleton is therefore visible in the sidebar to
+everyone, but changes to it can only be merged by admins because of the
+CODEOWNERS + branch protection setup above. Later versions of Sveltia's
+Additions feature are expected to add native role-based UI access.
+
+## Settings and auto-publishing
+
+The **Settings** singleton writes to `content/settings/settings.yml`:
+
+```yaml
+auto_publish: false
+```
+
+When enabled, `.github/workflows/auto-publish-posts.yml` automatically
+approves and merges article and news pull requests that:
+
+- are marked ready (`sveltia-cms/pending_publish`),
+- were opened by a user with editor **Write** access (admins use the normal
+  review flow),
+- only change files under `content/articles/`, `content/news/`, or
+  `public/media/`.
+
+Settings and code changes are never auto-published.
+
+To enable the automation, add a repository secret named `AUTO_PUBLISH_TOKEN`.
+Use a personal access token from an admin account with **Contents** and
+**Pull requests** read/write access. Without the secret, the workflow exits
+without merging.
+
+## Components
+
+- `Header.astro`, `Footer.astro` — site chrome.
+- `PostCard.astro` — article/news card with type badge.
+- `PostArchive.astro` — shared archive page for `/articles` and `/news`.
+- `PostView.astro` — shared post page with Markdown, gallery, TOC, and prev/next.
+- `ImageCarousel.astro` — accessible image carousel with dots, arrows, and swipe.
+- `BaseLayout.astro` — HTML shell, metadata, and global styles.
+
+## Commands
+
+| Command           | Action                                           |
+| :---------------- | :----------------------------------------------- |
+| `npm install`     | Install dependencies.                            |
+| `npm run dev`     | Start the dev server at `localhost:4321`.        |
+| `npm run build`   | Build the production site to `./dist/`.          |
+| `npm run preview` | Preview the production build.                    |
+| `npm run astro`   | Run Astro CLI commands like `astro check`.       |
+
+The CMS is available at `/admin/`.
+
+### Local development and CMS changes
+
+Sveltia CMS commits published changes to GitHub, not to your local working
+copy. Pull before starting the dev server to see content published through the
+CMS:
 
 ```sh
-npm create astro@latest -- --template minimal
+git pull
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+If the local repository has uncommitted changes, commit or stash them first so
+the pull can apply cleanly.
 
-## 🚀 Project Structure
+## Production deployment
 
-Inside of your Astro project, you'll see the following folders and files:
+Production does not pull from Git. `.github/workflows/deploy.yml` runs on every
+push to `master` — including merges from the editorial workflow and
+auto-published posts — builds the site, uploads `dist/` over SSH, and
+atomically switches the live symlink.
+
+The deployment layout on the VPS is:
 
 ```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+/var/www/dti-accomp/
+├── releases/
+│   ├── <commit-sha>/
+│   └── ...
+└── current -> releases/<latest-commit-sha>
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Point nginx or Caddy at `/var/www/dti-accomp/current`.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### Server prerequisites
 
-Any static assets, like images, can be placed in the `public/` directory.
+- A dedicated deploy user, e.g. `deploy`.
+- `rsync` installed on the server.
+- Write access for the deploy user to `DEPLOY_PATH`.
+- An SSH key authorized for the deploy user.
 
-## 🧞 Commands
+```sh
+sudo mkdir -p /var/www/dti-accomp/releases
+sudo chown -R deploy:deploy /var/www/dti-accomp
+```
 
-All commands are run from the root of the project, from a terminal:
+### GitHub repository secrets
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Add these under **Settings → Secrets and variables → Actions** (or the
+`production` environment):
 
-## 👀 Want to learn more?
+| Secret               | Required | Value                                                    |
+| :------------------- | :------- | :------------------------------------------------------- |
+| `DEPLOY_HOST`        | yes      | Server hostname or IP.                                   |
+| `DEPLOY_USER`        | yes      | SSH user, e.g. `deploy`.                                 |
+| `DEPLOY_SSH_KEY`     | yes      | Private key for the deploy user.                         |
+| `DEPLOY_PATH`        | yes      | Absolute path, e.g. `/var/www/dti-accomp`.               |
+| `DEPLOY_PORT`        | no       | SSH port. Defaults to `22`.                              |
+| `DEPLOY_KNOWN_HOSTS` | no       | Pre-pinned `known_hosts` entry. Otherwise uses keyscan.  |
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+After a merge, the flow is:
+
+```text
+Editor saves → PR → admin merges (or auto-publish merges)
+→ push to master
+→ deploy.yml builds dist/
+→ rsync to releases/<sha>
+→ current symlink switches
+→ live site updated
+```
+
+Use **Actions → Deploy production → Run workflow** to redeploy `master`
+manually.
+
+

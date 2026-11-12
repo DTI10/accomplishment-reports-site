@@ -1,0 +1,8 @@
+# Code owners for admin-only areas.
+#
+# Replace `@DTI10/admins` with the GitHub organization team that should own
+# these files. Enable “Require review from Code Owners” in the branch
+# protection/ruleset for `master` so only that team can approve changes here.
+/content/settings/ @DTI10/admins
+/public/admin/config.yml @DTI10/admins
+/.github/ @DTI10/admins

@@ -1,0 +1,347 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ImageCarousel from './ImageCarousel.astro';
+import {
+	formatPostDate,
+	getPostHref,
+	getPublishedPosts,
+	getSectionForCollection,
+	type Post,
+	type PostCollection,
+} from '../lib/content';
+
+interface Props {
+	post: Post;
+}
+
+const { post } = Astro.props;
+const { title, date, description, author, image, gallery, tags } = post.data;
+const { Content, headings } = await render(post);
+
+const collection = post.collection as PostCollection;
+const section = getSectionForCollection(collection);
+const sectionLabel = section === 'news' ? 'News' : 'Articles';
+
+const allPosts = await getPublishedPosts(collection);
+const currentIndex = allPosts.findIndex((item) => item.id === post.id);
+const previous = allPosts[currentIndex + 1];
+const next = allPosts[currentIndex - 1];
+
+const formattedDate = formatPostDate(date, 'long');
+
+const wordCount = (post.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 220));
+
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+
+<BaseLayout title={title} description={description ?? title} image={image}>
+	<article>
+		<header class="article-header">
+			<div class="container article-header-inner">
+				<a class="back-link" href={`/${section}/`}>← All {sectionLabel.toLowerCase()}</a>
+
+				<div class="article-meta">
+					<span class:list={['article-type', `article-type--${collection}`]}>{sectionLabel}</span>
+					<time datetime={date.toISOString()}>{formattedDate}</time>
+					<span aria-hidden="true">·</span>
+					<span>{readingTime} min read</span>
+					{author && <><span aria-hidden="true">·</span><span>{author}</span></>}
+				</div>
+
+				<h1>{title}</h1>
+				{description && <p class="article-lead">{description}</p>}
+
+				{
+					tags.length > 0 && (
+						<ul class="article-tags" aria-label="Tags">
+							{tags.map((tag) => (
+								<li>{tag}</li>
+							))}
+						</ul>
+					)
+				}
+			</div>
+		</header>
+
+		{
+			image && (
+				<div class="container article-cover">
+					<img src={image} alt={title} />
+				</div>
+			)
+		}
+
+		<div class="container article-layout">
+			<div class="article-body">
+				<div class="prose">
+					<Content />
+				</div>
+
+				{
+					gallery.length > 0 && (
+						<section class="article-gallery" aria-labelledby="gallery-heading">
+							<h2 id="gallery-heading">Gallery</h2>
+							<ImageCarousel items={gallery} label={`Photo gallery for ${title}`} />
+						</section>
+					)
+				}
+
+				<nav class="article-nav" aria-label={`More ${sectionLabel.toLowerCase()}`}>
+					{
+						previous ? (
+							<a class="article-nav-link" href={getPostHref(previous)}>
+								<span>Previous</span>
+								<strong>{previous.data.title}</strong>
+							</a>
+						) : (
+							<span />
+						)
+					}
+					{
+						next ? (
+							<a class="article-nav-link article-nav-link--next" href={getPostHref(next)}>
+								<span>Next</span>
+								<strong>{next.data.title}</strong>
+							</a>
+						) : (
+							<span />
+						)
+					}
+				</nav>
+			</div>
+
+			{
+				toc.length > 1 && (
+					<aside class="article-toc" aria-labelledby="toc-heading">
+						<h2 id="toc-heading">On this page</h2>
+						<ol>
+							{toc.map((heading) => (
+								<li class:list={{ nested: heading.depth === 3 }}>
+									<a href={`#${heading.slug}`}>{heading.text}</a>
+								</li>
+							))}
+						</ol>
+					</aside>
+				)
+			}
+		</div>
+	</article>
+</BaseLayout>
+
+<style>
+	.article-header {
+		padding-block: 3rem 2.5rem;
+		background: linear-gradient(180deg, #fff, var(--color-bg));
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.article-header-inner {
+		max-width: 820px;
+	}
+
+	.back-link {
+		display: inline-block;
+		margin-bottom: 1.4rem;
+		font-size: 0.86rem;
+		font-weight: 700;
+	}
+
+	.article-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--color-muted);
+		font-size: 0.82rem;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.article-type {
+		padding: 0.2rem 0.6rem;
+		border-radius: 999px;
+		background: #eaf1fb;
+		color: var(--color-primary);
+		font-size: 0.68rem;
+		font-weight: 800;
+	}
+
+	.article-type--news {
+		background: var(--color-accent-soft);
+		color: #7a5800;
+	}
+
+	.article-header h1 {
+		margin: 0.7rem 0 0.9rem;
+		font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+		letter-spacing: -0.025em;
+	}
+
+	.article-lead {
+		margin: 0;
+		max-width: 42rem;
+		color: var(--color-muted);
+		font-size: 1.12rem;
+	}
+
+	.article-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin: 1.4rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.article-tags li {
+		padding: 0.25rem 0.7rem;
+		border-radius: 999px;
+		background: var(--color-accent-soft);
+		color: #7a5800;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.article-cover {
+		margin-top: 2rem;
+	}
+
+	.article-cover img {
+		width: 100%;
+		max-height: 520px;
+		object-fit: cover;
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-md);
+	}
+
+	.article-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 240px;
+		gap: 3.5rem;
+		padding-top: 3rem;
+	}
+
+	.article-body {
+		min-width: 0;
+	}
+
+	.article-gallery {
+		margin-top: 3rem;
+	}
+
+	.article-gallery h2 {
+		margin-bottom: 1rem;
+		font-size: 1.3rem;
+	}
+
+	.article-toc {
+		position: sticky;
+		top: 100px;
+		align-self: start;
+		padding: 1.2rem 1.3rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		font-size: 0.85rem;
+	}
+
+	.article-toc h2 {
+		margin: 0 0 0.7rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+	}
+
+	.article-toc ol {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.article-toc li + li {
+		margin-top: 0.5rem;
+	}
+
+	.article-toc li.nested {
+		padding-left: 0.9rem;
+		font-size: 0.8rem;
+	}
+
+	.article-toc a {
+		color: var(--color-muted);
+	}
+
+	.article-toc a:hover {
+		color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	.article-nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin-top: 3.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.article-nav-link {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		padding: 1rem 1.2rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+	}
+
+	.article-nav-link:hover {
+		border-color: #b9c9e5;
+		text-decoration: none;
+	}
+
+	.article-nav-link span {
+		color: var(--color-muted);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.article-nav-link strong {
+		color: var(--color-text);
+		font-size: 0.92rem;
+	}
+
+	.article-nav-link--next {
+		text-align: right;
+	}
+
+	@media (max-width: 900px) {
+		.article-layout {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+
+		.article-toc {
+			position: static;
+			order: -1;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.article-nav {
+			grid-template-columns: 1fr;
+		}
+
+		.article-nav-link--next {
+			text-align: left;
+		}
+	}
+</style>

@@ -1,0 +1,114 @@
+---
+import type { Post } from '../lib/content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+	posts: Post[];
+	title: string;
+	description: string;
+	eyebrow: string;
+	emptyMessage?: string;
+}
+
+const {
+	posts,
+	title,
+	description,
+	eyebrow,
+	emptyMessage = 'No posts have been published yet.',
+} = Astro.props;
+
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
+---
+
+<section class="page-hero">
+	<div class="container">
+		<p class="eyebrow">{eyebrow}</p>
+		<h1>{title}</h1>
+		<p>{description}</p>
+	</div>
+</section>
+
+<section class="section">
+	<div class="container">
+		{
+			tags.length > 0 && (
+				<ul class="tag-list" aria-label="Topics">
+					{tags.map((tag) => (
+						<li>{tag}</li>
+					))}
+				</ul>
+			)
+		}
+
+		{
+			posts.length === 0 ? (
+				<div class="empty-state">
+					<h2>Nothing here yet</h2>
+					<p>
+						{emptyMessage} Sign in to the <a href="/admin/">content manager</a> to publish
+						your first post.
+					</p>
+				</div>
+			) : (
+				<div class="post-grid">
+					{posts.map((post) => (
+						<PostCard post={post} />
+					))}
+				</div>
+			)
+		}
+	</div>
+</section>
+
+<style>
+	.page-hero {
+		padding-block: 3.5rem 2rem;
+		background: linear-gradient(180deg, #fff, var(--color-bg));
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.page-hero h1 {
+		margin: 0 0 0.5rem;
+		font-size: clamp(2.2rem, 4vw, 3rem);
+		letter-spacing: -0.02em;
+	}
+
+	.page-hero p:last-child {
+		margin: 0;
+		color: var(--color-muted);
+	}
+
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 0 0 2rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tag-list li {
+		padding: 0.3rem 0.8rem;
+		border-radius: 999px;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		color: var(--color-muted);
+		font-size: 0.78rem;
+		font-weight: 600;
+	}
+
+	.post-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.empty-state {
+		padding: 3rem;
+		text-align: center;
+		background: var(--color-surface);
+		border: 1px dashed var(--color-border);
+		border-radius: var(--radius-lg);
+	}
+</style>

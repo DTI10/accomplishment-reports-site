@@ -1,18 +1,153 @@
 # yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
 
+app_title: DTI Accomplishments CMS
+
 backend:
   name: github
-  repo: user/repo
+  repo: DTI10/accomplishment-reports-site
+  branch: master
+  squash_merges: true
 
-media_folder: /public/media
+# All content changes go through a pull request. Editors can save and mark
+# entries as ready, but GitHub branch protection is what stops them from
+# merging/publishing. Only admins can approve and merge.
+publish_mode:
+  type: editorial_workflow
+  stages: [draft, pending_publish]
+  direct_publish: false
+  allow_incomplete_drafts: true
+
+# Media is stored in public/media so Astro can serve it from /media/...
+media_folder: public/media
 public_folder: /media
 
 collections:
-  - name: posts
-    label: Posts
-    label_singular: Post
-    folder: /content/posts
+  - name: articles
+    label: Articles
+    label_singular: Article
+    folder: content/articles
+    create: true
+    slug: '{{slug}}'
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: title
+    summary: '{{title}} — {{date}}'
+    preview_path: '/articles/{{slug}}'
+    sortable_fields:
+      - date
+      - title
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
-      - { label: Body, name: body, widget: richtext }
+      - {
+          label: Description,
+          name: description,
+          widget: text,
+          required: false,
+          hint: Short summary shown on article cards.
+        }
+      - { label: Author, name: author, widget: string, required: false }
+      - {
+          label: Cover image,
+          name: image,
+          widget: image,
+          required: false,
+          hint: Displayed on cards and at the top of the article.
+        }
+      - label: Gallery
+        name: gallery
+        widget: list
+        required: false
+        hint: Optional image carousel shown at the bottom of the article.
+        summary: '{{fields.caption}}'
+        fields:
+          - { label: Image, name: image, widget: image }
+          - { label: Caption, name: caption, widget: string, required: false }
+      - {
+          label: Tags,
+          name: tags,
+          widget: list,
+          required: false,
+          hint: Short topic labels, e.g. Trade, MSMEs.
+        }
+      - {
+          label: Body,
+          name: body,
+          widget: richtext,
+          required: false,
+          hint: Markdown content of the article.
+        }
+
+  - name: news
+    label: News
+    label_singular: News item
+    folder: content/news
+    create: true
+    slug: '{{slug}}'
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: title
+    summary: '{{title}} — {{date}}'
+    preview_path: '/news/{{slug}}'
+    sortable_fields:
+      - date
+      - title
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, type: date }
+      - {
+          label: Description,
+          name: description,
+          widget: text,
+          required: false,
+          hint: Short summary shown on news cards.
+        }
+      - { label: Author, name: author, widget: string, required: false }
+      - {
+          label: Cover image,
+          name: image,
+          widget: image,
+          required: false,
+          hint: Displayed on cards and at the top of the news item.
+        }
+      - label: Gallery
+        name: gallery
+        widget: list
+        required: false
+        hint: Optional image carousel shown at the bottom of the news item.
+        summary: '{{fields.caption}}'
+        fields:
+          - { label: Image, name: image, widget: image }
+          - { label: Caption, name: caption, widget: string, required: false }
+      - {
+          label: Tags,
+          name: tags,
+          widget: list,
+          required: false,
+          hint: Short topic labels, e.g. Advisories, Consumer.
+        }
+      - {
+          label: Body,
+          name: body,
+          widget: richtext,
+          required: false,
+          hint: Markdown content of the news item.
+        }
+
+# Site settings. Only admins are allowed to merge changes to this file via
+# the branch protection + CODEOWNERS setup described in README.md.
+singletons:
+  - name: settings
+    label: Settings
+    file: content/settings/settings.yml
+    icon: settings
+    description: Admin-only site settings.
+    fields:
+      - label: Allow editors to publish automatically
+        name: auto_publish
+        widget: boolean
+        default: false
+        hint: >-
+          When enabled, article and news pull requests marked as ready by an
+          editor are auto-approved and merged without an admin. Settings changes
+          still require an admin.
