@@ -7,6 +7,8 @@ image: /media/addressme.png
 gallery:
   - image: /media/rat.jpg
     caption: rat
+province:
+  - Misamis Oriental
 tags:
   - test
 draft: false

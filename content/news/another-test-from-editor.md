@@ -5,5 +5,7 @@ description: ''
 author: ''
 image: ''
 gallery: []
+province:
+  - Misamis Oriental
 tags: []
 ---
