@@ -17,6 +17,7 @@ const postSchema = z.object({
 		)
 		.optional()
 		.default([]),
+	province: z.array(z.string()).optional().default([]),
 	tags: z.array(z.string()).optional().default([]),
 });
 

@@ -47,6 +47,19 @@ collections:
           hint: Short summary shown on article cards.
         }
       - { label: Author, name: author, widget: string, required: false }
+      - label: Province / Office
+        name: province
+        widget: select
+        multiple: true
+        required: false
+        hint: Shown as a location badge on the home page. Pick one or more.
+        options:
+          - Regional Office
+          - Bukidnon
+          - Camiguin
+          - Lanao del Norte
+          - Misamis Occidental
+          - Misamis Oriental
       - {
           label: Cover image,
           name: image,
@@ -103,6 +116,19 @@ collections:
           hint: Short summary shown on news cards.
         }
       - { label: Author, name: author, widget: string, required: false }
+      - label: Province / Office
+        name: province
+        widget: select
+        multiple: true
+        required: false
+        hint: Shown as a location badge on the home page. Pick one or more.
+        options:
+          - Regional Office
+          - Bukidnon
+          - Camiguin
+          - Lanao del Norte
+          - Misamis Occidental
+          - Misamis Oriental
       - {
           label: Cover image,
           name: image,
