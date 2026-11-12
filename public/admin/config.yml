@@ -142,6 +142,8 @@ singletons:
     file: content/settings/settings.yml
     icon: settings
     description: Admin-only site settings.
+    editor:
+      preview: false
     fields:
       - label: Allow editors to publish automatically
         name: auto_publish
