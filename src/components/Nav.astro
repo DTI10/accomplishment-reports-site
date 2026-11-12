@@ -1,0 +1,330 @@
+---
+import { navItems } from '../lib/nav';
+
+const NATIONAL = 'https://www.dti.gov.ph';
+---
+
+<header class="nav-wrap" data-nav>
+	<nav class="nav shell" aria-label="Main" style="view-transition-name: site-nav">
+		<a href="/" class="flex items-center gap-3 rounded-sm" aria-label="DTI Region 10, home">
+			<img src="/brand/dti-rapid.png" alt="" width="40" height="40" class="h-10 w-auto" />
+			<span class="hidden whitespace-nowrap text-sm leading-tight sm:block">
+				<span class="block font-bold tracking-tight text-navy">Region 10</span>
+				<span class="block text-[0.8rem] text-ink/60">Northern Mindanao</span>
+			</span>
+		</a>
+
+		<!-- Wide screens: links in the bar, with dropdowns -->
+		<ul class="hidden items-center gap-1 whitespace-nowrap text-[0.92rem] font-medium text-navy/85 xl:flex">
+			{
+				navItems.map((item) => (
+					<li class:list={['relative', { group: item.children }]}>
+						{item.children ? (
+							<>
+								<button
+									type="button"
+									class="flex items-center gap-1 rounded px-3 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
+									aria-expanded="false"
+									aria-haspopup="true"
+									data-drop
+								>
+									{item.label}
+									<svg viewBox="0 0 12 8" width="10" height="7" aria-hidden="true">
+										<path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" />
+									</svg>
+								</button>
+								<ul class="drop" data-drop-panel>
+									{item.children.map((c) => (
+										<li>
+											<a
+												href={c.href}
+												target={c.external ? '_blank' : undefined}
+												rel={c.external ? 'noopener' : undefined}
+											>
+												{c.label}
+											</a>
+										</li>
+									))}
+								</ul>
+							</>
+						) : (
+							<a href={item.href} class="block rounded px-3 py-2 transition-colors hover:text-dti-blue">
+								{item.label}
+							</a>
+						)}
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="flex items-center gap-2">
+			<a href={NATIONAL} target="_blank" rel="noopener" class="btn hidden whitespace-nowrap bg-navy py-2.5 text-sm text-white hover:bg-dti-blue xl:inline-flex">
+				DTI National
+			</a>
+			<button type="button" class="menu-btn xl:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" data-menu-btn>
+				<span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+			</button>
+		</div>
+	</nav>
+
+	<div id="mobile-menu" class="menu-panel shell xl:hidden" data-menu hidden>
+		<ul>
+			{
+				navItems.map((item) => (
+					<li>
+						<a href={item.href} data-menu-link={item.children ? undefined : ''} class="menu-top">
+							{item.label}
+						</a>
+						{item.children && (
+							<ul class="menu-sub">
+								{item.children.map((c) => (
+									<li>
+										<a href={c.href} data-menu-link>
+											{c.label}
+										</a>
+									</li>
+								))}
+							</ul>
+						)}
+					</li>
+				))
+			}
+		</ul>
+		<a href={NATIONAL} target="_blank" rel="noopener" class="btn mt-4 w-full justify-center bg-navy text-white hover:bg-dti-blue">
+			DTI National
+		</a>
+	</div>
+</header>
+
+<style>
+	.nav-wrap {
+		position: fixed;
+		inset: 0.75rem 0 auto;
+		z-index: 50;
+		pointer-events: none;
+	}
+	.nav,
+	.menu-panel {
+		pointer-events: auto;
+		width: calc(100% - 2rem);
+		max-width: 76rem;
+		background: rgb(255 255 255 / 0.94);
+		backdrop-filter: blur(14px) saturate(1.3);
+		-webkit-backdrop-filter: blur(14px) saturate(1.3);
+		box-shadow:
+			0 0 0 1px rgb(10 31 68 / 0.08),
+			0 14px 34px -14px rgb(6 22 51 / 0.55);
+	}
+	.nav {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-block: 0.5rem;
+		padding-inline: 0.75rem 0.5rem;
+		border-radius: 10px;
+	}
+
+	/* Dropdown under a link */
+	.drop {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		min-width: 15rem;
+		margin-top: 0.85rem;
+		padding: 0.4rem;
+		border-radius: 10px;
+		background: #fff;
+		box-shadow:
+			0 0 0 1px rgb(10 31 68 / 0.08),
+			0 18px 40px -14px rgb(6 22 51 / 0.5);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-0.4rem);
+		transition:
+			opacity 0.2s,
+			transform 0.3s var(--ease-out-quint),
+			visibility 0.2s;
+	}
+	/* invisible bridge so the panel stays open while the pointer crosses the gap */
+	.drop::before {
+		content: '';
+		position: absolute;
+		inset: -1rem 0 auto;
+		height: 1rem;
+	}
+	li:hover > .drop,
+	li:focus-within > .drop,
+	.drop[data-open] {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+	}
+	.drop a {
+		display: block;
+		padding: 0.65rem 0.8rem;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-weight: 500;
+		color: var(--color-navy);
+	}
+	.drop a:hover {
+		background: rgb(10 31 68 / 0.06);
+		color: var(--color-dti-blue);
+	}
+
+	/* Menu button: three lines that turn into an X when open */
+	.menu-btn {
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 6px;
+		background: var(--color-navy);
+		color: #fff;
+	}
+	@media (min-width: 1280px) {
+		.menu-btn,
+		.menu-panel {
+			display: none !important;
+		}
+	}
+	.menu-icon {
+		position: relative;
+		width: 1.15rem;
+		height: 0.85rem;
+	}
+	.menu-icon span {
+		position: absolute;
+		left: 0;
+		width: 100%;
+		height: 2px;
+		border-radius: 2px;
+		background: currentColor;
+		transition:
+			transform 0.3s var(--ease-out-quint),
+			opacity 0.2s;
+	}
+	.menu-icon span:nth-child(1) {
+		top: 0;
+	}
+	.menu-icon span:nth-child(2) {
+		top: calc(50% - 1px);
+	}
+	.menu-icon span:nth-child(3) {
+		bottom: 0;
+	}
+	.menu-btn[aria-expanded='true'] .menu-icon span:nth-child(1) {
+		transform: translateY(calc(0.425rem - 1px)) rotate(45deg);
+	}
+	.menu-btn[aria-expanded='true'] .menu-icon span:nth-child(2) {
+		opacity: 0;
+	}
+	.menu-btn[aria-expanded='true'] .menu-icon span:nth-child(3) {
+		transform: translateY(calc(-0.425rem + 1px)) rotate(-45deg);
+	}
+
+	/* Mobile panel under the bar: solid so page content never shows through */
+	.menu-panel {
+		background: #fff;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		margin-top: 0.6rem;
+		padding: 0.75rem;
+		border-radius: 10px;
+		max-height: calc(100svh - 6rem);
+		overflow-y: auto;
+		animation: menu-in 0.3s var(--ease-out-quint);
+	}
+	.menu-panel[hidden] {
+		display: none;
+	}
+	.menu-panel > ul > li + li {
+		border-top: 1px solid rgb(10 31 68 / 0.1);
+	}
+	.menu-top {
+		display: block;
+		padding: 0.95rem 0.75rem;
+		font-size: 1.05rem;
+		font-weight: 700;
+		letter-spacing: -0.005em;
+		color: var(--color-navy);
+		border-radius: 4px;
+	}
+	.menu-sub {
+		padding: 0 0 0.6rem 1.25rem;
+	}
+	.menu-sub a {
+		display: block;
+		padding: 0.5rem 0.75rem;
+		color: rgb(11 23 48 / 0.68);
+		font-size: 0.98rem;
+		border-radius: 4px;
+	}
+	.menu-panel a:hover {
+		background: rgb(10 31 68 / 0.05);
+	}
+	@keyframes menu-in {
+		from {
+			opacity: 0;
+			transform: translateY(-0.5rem);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.menu-panel,
+		.menu-icon span,
+		.drop {
+			animation: none;
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	const wrap = document.querySelector<HTMLElement>('[data-nav]');
+	const btn = document.querySelector<HTMLButtonElement>('[data-menu-btn]');
+	const panel = document.querySelector<HTMLElement>('[data-menu]');
+
+	const setOpen = (open: boolean) => {
+		if (!btn || !panel) return;
+		panel.hidden = !open;
+		btn.setAttribute('aria-expanded', String(open));
+		btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+	};
+	btn?.addEventListener('click', () => setOpen(panel?.hidden ?? false));
+	panel?.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+
+	// Desktop dropdowns also open by click/tap (touch laptops), close on Esc or outside click
+	const drops = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-drop]'));
+	const closeDrops = (except?: Element) =>
+		drops.forEach((b) => {
+			if (b === except) return;
+			b.setAttribute('aria-expanded', 'false');
+			b.nextElementSibling?.removeAttribute('data-open');
+		});
+	drops.forEach((b) =>
+		b.addEventListener('click', () => {
+			const open = b.getAttribute('aria-expanded') !== 'true';
+			closeDrops(b);
+			b.setAttribute('aria-expanded', String(open));
+			b.nextElementSibling?.toggleAttribute('data-open', open);
+		}),
+	);
+
+	document.addEventListener('keydown', (e) => {
+		if (e.key !== 'Escape') return;
+		closeDrops();
+		if (panel && !panel.hidden) {
+			setOpen(false);
+			btn?.focus();
+		}
+	});
+	document.addEventListener('click', (e) => {
+		const t = e.target as Node;
+		if (!wrap?.contains(t)) {
+			closeDrops();
+			if (panel && !panel.hidden) setOpen(false);
+		}
+	});
+	window.matchMedia('(min-width: 1280px)').addEventListener('change', (e) => e.matches && setOpen(false));
+</script>
