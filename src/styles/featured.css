@@ -1,0 +1,188 @@
+/* ---- "Hero" style: featured stories as the page's hero (FeaturedHero.tsx) ---- */
+	.fh {
+		height: 100svh;
+		min-height: 620px;
+		max-height: 1080px;
+	}
+	.fh [data-slot='carousel-content'] > div {
+		height: 100%;
+	}
+	.fh-slide {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		background: var(--color-navy-deep);
+	}
+	.fh-photo {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		user-select: none;
+	}
+	/* slow zoom-out each time a story appears, including the first one on page load */
+	.fh-photo.is-active {
+		animation: fh-zoom 9s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+	}
+	@keyframes fh-zoom {
+		from {
+			transform: scale(1.07);
+		}
+		to {
+			transform: scale(1);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.fh-photo.is-active {
+			animation: none;
+		}
+	}
+	/* darker on the left (text side) and at the bottom (controls) */
+	.fh-shade {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(90deg, rgb(6 22 51 / 0.94) 0%, rgb(6 22 51 / 0.78) 34%, rgb(6 22 51 / 0.25) 66%, rgb(6 22 51 / 0.05) 100%),
+			linear-gradient(0deg, rgb(6 22 51 / 0.92) 0%, rgb(6 22 51 / 0) 42%);
+	}
+	.fh-content {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: flex-end;
+		padding-top: 7rem;
+		padding-bottom: 8.5rem;
+	}
+	.fh-text {
+		max-width: 48rem;
+		opacity: 0;
+		transform: translateY(14px);
+		transition:
+			opacity 0.7s ease 0.2s,
+			transform 0.8s var(--ease-out-quint) 0.2s;
+	}
+	.fh-text.is-active {
+		opacity: 1;
+		transform: none;
+	}
+	.fh-title {
+		font-size: clamp(1.9rem, 3.5vw, 3.05rem);
+		font-stretch: 104%;
+		line-height: 1.04;
+		text-wrap: balance;
+	}
+	.fh-title a {
+		color: var(--color-mist);
+		transition: color 0.2s;
+	}
+	.fh-title a:hover {
+		color: #fff;
+	}
+	.fh-summary {
+		max-width: 36rem;
+		font-size: 1.05rem;
+		line-height: 1.6;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.fh-controls {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 2rem;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+	/* phones and tablets: the controls sit just under the story text */
+	@media (max-width: 1023px) {
+		.fh-content {
+			padding-bottom: 6rem;
+		}
+		.fh-controls {
+			bottom: 1.75rem;
+		}
+	}
+	/* desktop: the controls sit on the right, level with the Read the story button */
+	@media (min-width: 1024px) {
+		.fh-controls {
+			bottom: 8.5rem;
+			justify-content: flex-end;
+			pointer-events: none; /* the empty part of the row must not cover the button */
+		}
+		.fh-controls > * {
+			pointer-events: auto;
+		}
+		.fh-controls > div:first-child {
+			flex: 0 1 16rem;
+		}
+	}
+	.fh-progress {
+		position: relative;
+		flex: 1;
+		max-width: 14rem;
+		height: 2px;
+		background: rgb(234 238 246 / 0.25);
+		overflow: hidden;
+	}
+	.fh-progress span {
+		position: absolute;
+		inset: 0;
+		background: var(--color-dti-gold);
+		transform-origin: left;
+		animation-name: fh-progress;
+		animation-timing-function: linear;
+		animation-fill-mode: forwards;
+	}
+	@keyframes fh-progress {
+		from {
+			transform: scaleX(0);
+		}
+		to {
+			transform: scaleX(1);
+		}
+	}
+	@media (max-width: 640px) {
+		.fh {
+			min-height: 600px;
+		}
+		.fh-content {
+			padding-bottom: 6.5rem;
+		}
+		.fh-shade {
+			background: linear-gradient(0deg, rgb(6 22 51 / 0.96) 0%, rgb(6 22 51 / 0.75) 45%, rgb(6 22 51 / 0.2) 100%);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.fh-photo,
+		.fh-text {
+			transition: none;
+			transform: none;
+		}
+	}
+
+/* No photo: branded panel with the DTI mark, so the slide never looks empty */
+.fh-fallback {
+	background:
+		url('/brand/dti-white.png') no-repeat right 9% center / auto 62%,
+		radial-gradient(80% 70% at 75% 35%, #14357a 0%, transparent 70%),
+		var(--color-navy);
+}
+.fh-fallback::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: rgb(10 31 68 / 0.82);
+}
+@media (max-width: 640px) {
+	.fh-fallback {
+		background:
+			url('/brand/dti-white.png') no-repeat right 8% top 18% / auto 30%,
+			radial-gradient(80% 70% at 75% 35%, #14357a 0%, transparent 70%),
+			var(--color-navy);
+	}
+}
