@@ -1,0 +1,109 @@
+name: Restore PRs closed by non-admins
+
+# Editors with Write access can close any pull request and delete its branch.
+# Sveltia's Discard action uses those GitHub APIs, so a UI permission check is
+# not enough. This workflow restores PRs closed by someone other than the
+# author or a repository admin/maintainer.
+#
+# pull_request_target is used because the recovery needs secrets. Do not check
+# out or execute code from the pull request in this workflow.
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: restore-closed-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.AUTO_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PR_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+      CLOSER: ${{ github.event.sender.login }}
+    steps:
+      - name: Check who closed the pull request
+        id: closer
+        run: |
+          set -euo pipefail
+
+          echo "PR #$PR_NUMBER was closed by $CLOSER (author: $PR_AUTHOR)."
+
+          # Authors may discard their own work.
+          if [ "$CLOSER" = "$PR_AUTHOR" ]; then
+            echo "The author closed their own PR; nothing to restore."
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Allow bots and automation.
+          if [[ "$CLOSER" == *"[bot]" ]]; then
+            echo "$CLOSER is a bot; skipping."
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          permission=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$CLOSER/permission" \
+            --jq '.permission' 2>/dev/null || echo none)
+
+          echo "$CLOSER has '$permission' permission."
+
+          case "$permission" in
+            admin|maintain)
+              echo "$CLOSER is an admin/maintainer; nothing to restore."
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::warning::$CLOSER closed PR #$PR_NUMBER without admin access."
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Reopen the pull request and restore its branch
+        if: steps.closer.outputs.allowed == 'false'
+        run: |
+          set -euo pipefail
+
+          if [ "$PR_HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::warning::PR #$PR_NUMBER comes from $PR_HEAD_REPO. The branch must be restored in the fork."
+
+            if gh pr reopen "$PR_NUMBER"; then
+              gh pr comment "$PR_NUMBER" --body \
+                "This pull request was closed by \`$CLOSER\`, who is not its author and does not have admin access. It has been reopened automatically. If the branch was deleted from the fork, restore it in \`$PR_HEAD_REPO\`."
+            else
+              echo "::error::Could not reopen PR #$PR_NUMBER because its fork branch is gone."
+            fi
+            exit 0
+          fi
+
+          encoded_ref=$(jq -rn --arg ref "heads/$PR_BRANCH" '$ref|@uri')
+
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/$encoded_ref" >/dev/null 2>&1; then
+            echo "Branch '$PR_BRANCH' still exists."
+          else
+            echo "Branch '$PR_BRANCH' is gone; restoring it at $PR_SHA."
+
+            if ! gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f "ref=refs/heads/$PR_BRANCH" \
+              -f "sha=$PR_SHA" >/dev/null; then
+              echo "::warning::A branch named '$PR_BRANCH' already exists or could not be created. Trying to reopen anyway."
+            fi
+          fi
+
+          gh pr reopen "$PR_NUMBER"
+
+          gh pr comment "$PR_NUMBER" --body \
+            "This pull request was closed by \`$CLOSER\`, who is not its author and does not have admin access. It has been reopened automatically, and its branch was restored if needed.
+
+          Only the pull request author or an admin/maintainer should discard it."
