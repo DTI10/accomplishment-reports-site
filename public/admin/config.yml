@@ -8,14 +8,13 @@ backend:
   branch: master
   squash_merges: true
 
-# All content changes go through a pull request. Editors can save and mark
-# entries as ready, but GitHub branch protection is what stops them from
-# merging/publishing. Only admins can approve and merge.
-publish_mode:
-  type: editorial_workflow
-  stages: [draft, pending_publish]
-  direct_publish: false
-  allow_incomplete_drafts: true
+# Articles and news use the Editorial Workflow, configured per collection
+# below: editors save a draft, mark it ready, and an admin merges the PR.
+# Sveltia singletons always follow this top-level setting, so keeping it on
+# "simple" means saving the Settings singleton commits straight to the
+# configured branch (publishing immediately) instead of opening a PR. Branch
+# protection + CODEOWNERS still limit who can push/merge settings.
+publish_mode: simple
 
 # Media is stored in public/media so Astro can serve it from /media/...
 media_folder: public/media
@@ -38,17 +37,23 @@ collections:
   - name: articles
     label: Accomplishments
     label_singular: Accomplishment
+    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
     folder: content/articles
     create: true
-    slug: '{{slug}}'
+    slug: "{{slug}}"
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    summary: '{{title}} — {{date}}'
-    preview_path: '/articles/{{slug}}'
+    summary: "{{title}} — {{date}}"
+    preview_path: "/articles/{{slug}}"
     sortable_fields:
       - date
       - title
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
@@ -138,18 +143,24 @@ collections:
 
   - name: news
     label: News
+    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
     label_singular: News item
     folder: content/news
     create: true
-    slug: '{{slug}}'
+    slug: "{{slug}}"
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    summary: '{{title}} — {{date}}'
-    preview_path: '/news/{{slug}}'
+    summary: "{{title}} — {{date}}"
+    preview_path: "/news/{{slug}}"
     sortable_fields:
       - date
       - title
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
@@ -237,8 +248,10 @@ collections:
           - Awards
           - Financing
 
-# Site settings. Only admins are allowed to merge changes to this file via
-# the branch protection + CODEOWNERS setup described in README.md.
+# Site settings. A save is committed straight to the configured branch, with
+# no draft/ready/publish PR, because singletons follow the top-level
+# publish_mode: simple. Only admins can bypass branch protection to push this
+# file; CODEOWNERS marks it admin-only.
 singletons:
   - name: settings
     label: Settings
@@ -252,6 +265,6 @@ singletons:
         widget: boolean
         default: false
         hint: >-
-          When enabled, accomplishment and news pull requests marked as ready by an
+          When enabled, accomplishments and news requests marked as ready by an
           editor are auto-approved and merged without an admin. Settings changes
           still require an admin.
