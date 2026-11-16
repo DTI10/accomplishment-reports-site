@@ -19,6 +19,45 @@ const postSchema = z.object({
 		.default([]),
 	province: z.array(z.string()).optional().default([]),
 	tags: z.array(z.string()).optional().default([]),
+	program: z.string().optional(),
+	image_alt: z.string().optional(),
+	featured: z.boolean().optional().default(false),
+	event: z
+		.object({
+			start: z.coerce.date(),
+			end: z.coerce.date().optional(),
+			venue: z.string().optional(),
+			registration_url: z.string().optional(),
+		})
+		.optional(),
+	stats: z
+		.array(
+			z.object({
+				label: z.string(),
+				value: z.string(),
+			}),
+		)
+		.optional()
+		.default([]),
+	partners: z.array(z.string()).optional().default([]),
+	attachments: z
+		.array(
+			z.object({
+				title: z.string(),
+				file: z.string(),
+			}),
+		)
+		.optional()
+		.default([]),
+	contact: z
+		.object({
+			name: z.string().optional(),
+			role: z.string().optional(),
+			email: z.string().optional(),
+			phone: z.string().optional(),
+		})
+		.optional(),
+	related: z.array(z.string()).optional().default([]),
 });
 
 const articles = defineCollection({

@@ -44,9 +44,23 @@ collections:
           name: description,
           widget: text,
           required: false,
-          hint: Short summary shown on article cards.
+          hint: Short summary shown on article cards and in search results.
         }
       - { label: Author, name: author, widget: string, required: false }
+      - label: Program
+        name: program
+        widget: select
+        required: false
+        hint: The DTI program or project this story belongs to.
+        options:
+          - KMME
+          - Shared Service Facility (SSF)
+          - Pondo sa Pagbabago at Pag-asenso (P3)
+          - RAPID Growth
+          - Diskwento Caravan
+          - Bagwis
+          - Consumer Protection
+          - Trade Facilitation
       - label: Province / Office
         name: province
         widget: select
@@ -67,6 +81,37 @@ collections:
           required: false,
           hint: Displayed on cards and at the top of the article.
         }
+      - {
+          label: Cover image alt text,
+          name: image_alt,
+          widget: string,
+          required: false,
+          hint: Describe the image for screen readers. Defaults to the title.
+        }
+      - {
+          label: Featured,
+          name: featured,
+          widget: boolean,
+          default: false,
+          hint: Pins this story to the home page hero.
+        }
+      - label: Event details
+        name: event
+        widget: object
+        required: false
+        collapsed: true
+        hint: Fill in for events, trainings, or activities with a schedule.
+        fields:
+          - { label: Start, name: start, widget: datetime }
+          - { label: End, name: end, widget: datetime, required: false }
+          - { label: Venue, name: venue, widget: string, required: false }
+          - {
+              label: Registration link,
+              name: registration_url,
+              widget: string,
+              required: false,
+              hint: Full URL where readers can register.
+            }
       - label: Gallery
         name: gallery
         widget: list
@@ -76,18 +121,75 @@ collections:
         fields:
           - { label: Image, name: image, widget: image }
           - { label: Caption, name: caption, widget: string, required: false }
+      - label: Tags
+        name: tags
+        widget: select
+        multiple: true
+        required: false
+        hint: Short topic labels used by the archive filters.
+        options:
+          - Trade
+          - MSMEs
+          - Consumer
+          - Advisories
+          - Programs
+          - Events
+          - Awards
+          - Financing
+      - label: Key figures
+        name: stats
+        widget: list
+        required: false
+        hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
+        summary: '{{fields.label}}: {{fields.value}}'
+        fields:
+          - { label: Label, name: label, widget: string }
+          - { label: Value, name: value, widget: string }
       - {
-          label: Tags,
-          name: tags,
+          label: Partners,
+          name: partners,
           widget: list,
           required: false,
-          hint: Short topic labels, e.g. Trade, MSMEs.
+          hint: Partner agencies, offices, or organizations.
         }
+      - label: Attachments
+        name: attachments
+        widget: list
+        required: false
+        hint: Downloadable files such as press releases, MOAs, or reports.
+        summary: '{{fields.title}}'
+        fields:
+          - { label: Title, name: title, widget: string }
+          - { label: File, name: file, widget: file }
+      - label: Contact
+        name: contact
+        widget: object
+        required: false
+        collapsed: true
+        hint: Who readers can reach for more information.
+        fields:
+          - { label: Name, name: name, widget: string, required: false }
+          - { label: Role, name: role, widget: string, required: false }
+          - { label: Email, name: email, widget: string, required: false }
+          - { label: Phone, name: phone, widget: string, required: false }
+      - label: Related articles
+        name: related
+        widget: relation
+        collection: articles
+        search_fields: [title]
+        display_fields: [title]
+        multiple: true
+        required: false
+        filters:
+          - field: slug
+            values: ['{{slug}}']
+            exclude: true
+        hint: Pick other articles to show under "Read next".
       - {
           label: Body,
           name: body,
           widget: richtext,
-          required: false,
+          required: true,
           hint: Markdown content of the article.
         }
 
@@ -113,9 +215,23 @@ collections:
           name: description,
           widget: text,
           required: false,
-          hint: Short summary shown on news cards.
+          hint: Short summary shown on news cards and in search results.
         }
       - { label: Author, name: author, widget: string, required: false }
+      - label: Program
+        name: program
+        widget: select
+        required: false
+        hint: The DTI program or project this item belongs to.
+        options:
+          - KMME
+          - Shared Service Facility (SSF)
+          - Pondo sa Pagbabago at Pag-asenso (P3)
+          - RAPID Growth
+          - Diskwento Caravan
+          - Bagwis
+          - Consumer Protection
+          - Trade Facilitation
       - label: Province / Office
         name: province
         widget: select
@@ -136,6 +252,37 @@ collections:
           required: false,
           hint: Displayed on cards and at the top of the news item.
         }
+      - {
+          label: Cover image alt text,
+          name: image_alt,
+          widget: string,
+          required: false,
+          hint: Describe the image for screen readers. Defaults to the title.
+        }
+      - {
+          label: Featured,
+          name: featured,
+          widget: boolean,
+          default: false,
+          hint: Pins this item to the home page hero.
+        }
+      - label: Event details
+        name: event
+        widget: object
+        required: false
+        collapsed: true
+        hint: Fill in for events, trainings, or activities with a schedule.
+        fields:
+          - { label: Start, name: start, widget: datetime }
+          - { label: End, name: end, widget: datetime, required: false }
+          - { label: Venue, name: venue, widget: string, required: false }
+          - {
+              label: Registration link,
+              name: registration_url,
+              widget: string,
+              required: false,
+              hint: Full URL where readers can register.
+            }
       - label: Gallery
         name: gallery
         widget: list
@@ -145,18 +292,75 @@ collections:
         fields:
           - { label: Image, name: image, widget: image }
           - { label: Caption, name: caption, widget: string, required: false }
+      - label: Tags
+        name: tags
+        widget: select
+        multiple: true
+        required: false
+        hint: Short topic labels used by the archive filters.
+        options:
+          - Trade
+          - MSMEs
+          - Consumer
+          - Advisories
+          - Programs
+          - Events
+          - Awards
+          - Financing
+      - label: Key figures
+        name: stats
+        widget: list
+        required: false
+        hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
+        summary: '{{fields.label}}: {{fields.value}}'
+        fields:
+          - { label: Label, name: label, widget: string }
+          - { label: Value, name: value, widget: string }
       - {
-          label: Tags,
-          name: tags,
+          label: Partners,
+          name: partners,
           widget: list,
           required: false,
-          hint: Short topic labels, e.g. Advisories, Consumer.
+          hint: Partner agencies, offices, or organizations.
         }
+      - label: Attachments
+        name: attachments
+        widget: list
+        required: false
+        hint: Downloadable files such as press releases, MOAs, or reports.
+        summary: '{{fields.title}}'
+        fields:
+          - { label: Title, name: title, widget: string }
+          - { label: File, name: file, widget: file }
+      - label: Contact
+        name: contact
+        widget: object
+        required: false
+        collapsed: true
+        hint: Who readers can reach for more information.
+        fields:
+          - { label: Name, name: name, widget: string, required: false }
+          - { label: Role, name: role, widget: string, required: false }
+          - { label: Email, name: email, widget: string, required: false }
+          - { label: Phone, name: phone, widget: string, required: false }
+      - label: Related news
+        name: related
+        widget: relation
+        collection: news
+        search_fields: [title]
+        display_fields: [title]
+        multiple: true
+        required: false
+        filters:
+          - field: slug
+            values: ['{{slug}}']
+            exclude: true
+        hint: Pick other news items to show under "Read next".
       - {
           label: Body,
           name: body,
           widget: richtext,
-          required: false,
+          required: true,
           hint: Markdown content of the news item.
         }
 
