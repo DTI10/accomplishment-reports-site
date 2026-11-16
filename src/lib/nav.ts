@@ -38,5 +38,4 @@ export const navItems: NavItem[] = [
 			},
 		],
 	},
-	{ label: 'About', href: '#' },
 ];

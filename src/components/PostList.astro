@@ -51,29 +51,29 @@ const provinces = PROVINCES.filter((name) =>
 )
 const years = [...new Set(rows.map((row) => row.year))].sort().reverse()
 
+// Field styling follows the shadcn/ui Input and Select: 40px tall, 6px corners, a hairline border, a faint shadow
+// and a soft ring on focus.
 const field =
-  "h-11 w-full rounded-[6px] border border-navy/20 bg-white px-3.5 text-[0.95rem] text-navy transition-colors placeholder:text-ink/45 hover:border-navy/40 focus-visible:border-navy"
+  "h-10 w-full rounded-md border border-navy/15 bg-white px-3 text-sm text-navy shadow-xs outline-none transition-[color,box-shadow,border-color] placeholder:text-ink/45 hover:border-navy/30 focus-visible:border-navy/60 focus-visible:ring-[3px] focus-visible:ring-navy/15 focus-visible:outline-none"
+const select = `${field} cursor-pointer appearance-none pr-9`
 ---
 
 <div data-posts data-page={pageSize}>
   {posts.length > 0 && showFilters && (
     <form
-      class:list={[
-        "mb-12 grid gap-3 sm:grid-cols-2",
-        hideProvince ? "lg:grid-cols-[1fr_9rem_auto]" : "lg:grid-cols-[1fr_16rem_9rem_auto]"
-      ]}
+      class="mb-12 grid grid-cols-2 gap-2 lg:flex"
       role="search"
       aria-label="Filter stories"
       data-form
     >
-      <div class="relative sm:col-span-2 lg:col-span-1">
+      <div class="relative col-span-2 lg:flex-1">
         <label class="sr-only" for={`${idPrefix}-search`}>Search</label>
         <svg
           viewBox="0 0 24 24"
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           aria-hidden="true"
-          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink/45"
+          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-navy/50"
         >
           <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2" />
           <path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -84,35 +84,44 @@ const field =
           data-q
           placeholder="Search by title, topic or place"
           autocomplete="off"
-          class:list={[field, "pl-10"]}
+          class:list={[field, "pl-9 [&::-webkit-search-cancel-button]:appearance-none"]}
         />
       </div>
 
       {!hideProvince && (
-        <div>
+        <div class="relative lg:w-60">
           <label class="sr-only" for={`${idPrefix}-province`}>Province or office</label>
-          <select id={`${idPrefix}-province`} data-filter-province class={field}>
-            <option value="">All provinces / offices</option>
+          <select id={`${idPrefix}-province`} data-filter-province class={select}>
+            <option value="">All offices</option>
             {provinces.map((name) => <option value={name}>{name}</option>)}
           </select>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-navy/50">
+            <path d="M5 6.5 8 3.5l3 3M5 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
       )}
 
-      <div>
+      <div class:list={["relative lg:w-40", hideProvince && "col-span-2"]}>
         <label class="sr-only" for={`${idPrefix}-year`}>Year</label>
-        <select id={`${idPrefix}-year`} data-filter-year class={field}>
+        <select id={`${idPrefix}-year`} data-filter-year class={select}>
           <option value="">All years</option>
           {years.map((year) => <option value={year}>{year}</option>)}
         </select>
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-navy/50">
+          <path d="M5 6.5 8 3.5l3 3M5 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       </div>
 
       <button
         type="button"
         data-clear
         hidden
-        class="h-11 rounded-[6px] px-4 text-sm font-semibold text-navy underline decoration-navy/40 underline-offset-4 hover:decoration-navy"
+        class="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium text-navy transition-colors outline-none hover:bg-navy/6 focus-visible:ring-[3px] focus-visible:ring-navy/15 [&[hidden]]:hidden"
       >
-        Clear filters
+        Reset
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+          <path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
       </button>
     </form>
   )}
@@ -170,8 +179,21 @@ const field =
     if (!more || !status || !empty || items.length === 0) return
 
     let limit = page
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-    const render = () => {
+    // Cards that become visible after the page has loaded fade up one after another.
+    const fadeIn = (cards: HTMLElement[]) => {
+      cards.forEach((li, i) => {
+        li.removeAttribute("data-reveal")
+        li.classList.remove("card-in")
+        li.style.setProperty("--d", `${Math.min(i, 8) * 40}ms`)
+        void li.offsetWidth // restart the animation if it is still running
+        li.classList.add("card-in")
+        li.addEventListener("animationend", () => li.classList.remove("card-in"), { once: true })
+      })
+    }
+
+    const render = (animate = true) => {
       const words = (q?.value ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean)
       const matches = items.filter(
         (li) =>
@@ -180,8 +202,10 @@ const field =
           words.every((word) => (li.dataset.search ?? "").includes(word))
       )
 
-      items.forEach((li) => (li.hidden = true))
-      matches.slice(0, limit).forEach((li) => (li.hidden = false))
+      const visible = matches.slice(0, limit)
+      const arriving = visible.filter((li) => li.hidden)
+      items.forEach((li) => (li.hidden = !visible.includes(li)))
+      if (animate && !calm) fadeIn(arriving)
 
       const shown = Math.min(limit, matches.length)
       more.hidden = shown >= matches.length
@@ -220,6 +244,25 @@ const field =
       matches?.[before]?.querySelector("a")?.focus()
     })
 
-    render()
+    render(false)
+
+    // Cards below the first screen ease in as they are scrolled to.
+    if (!calm && "IntersectionObserver" in window) {
+      const seen = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return
+            entry.target.classList.add("in")
+            seen.unobserve(entry.target)
+          })
+        },
+        { rootMargin: "0px 0px -8% 0px" }
+      )
+      items.forEach((li) => {
+        if (li.hidden || li.getBoundingClientRect().top < window.innerHeight) return
+        li.setAttribute("data-reveal", "")
+        seen.observe(li)
+      })
+    }
   })
 </script>

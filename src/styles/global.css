@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./featured.css";
 @import "./post.css";
+@import "./motion.css";
 
 @theme {
   --color-dti-blue: #0038a8;
@@ -23,6 +24,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* the floating menu bar sits at the top: keep anchors and focused elements clear of it */
+    scroll-padding-top: 6rem;
     -webkit-text-size-adjust: 100%;
   }
 
