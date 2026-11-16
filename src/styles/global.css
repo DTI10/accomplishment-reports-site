@@ -1,23 +1,151 @@
+@import 'tailwindcss';
+@import './featured.css';
+
+@theme {
+	--color-dti-blue: #0038a8;
+	--color-blue-soft: #2f55b8;
+	--color-navy: #0a1f44;
+	--color-navy-deep: #061633;
+	--color-dti-red: #ce1126;
+	--color-dti-gold: #fcd116;
+	--color-mist: #eaeef6;
+	--color-mist-deep: #d6deed;
+	--color-ink: #0b1730;
+
+	--font-display: 'Geist', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+
+	--ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		background: var(--color-mist);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-size: 1.0625rem;
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+		overflow-x: hidden;
+	}
+
+	img {
+		display: block;
+		max-width: 100%;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--color-dti-gold);
+		outline-offset: 3px;
+		border-radius: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+	}
+}
+
+@layer components {
+	/* Wide display cut used for every headline */
+	.display {
+		font-family: var(--font-display);
+		font-weight: 700;
+		letter-spacing: -0.035em;
+		line-height: 1;
+	}
+
+	.shell {
+		width: 100%;
+		max-width: 82rem;
+		margin-inline: auto;
+		padding-inline: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.shell {
+			padding-inline: 2rem;
+		}
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.85rem 1.35rem;
+		border-radius: 6px;
+		font-weight: 600;
+		font-size: 0.975rem;
+		transition:
+			background-color 0.25s,
+			color 0.25s,
+			border-color 0.25s;
+	}
+}
+
+/* Page transitions (cross-document View Transitions): the menu bar stays put, the page fades and rises. */
+@view-transition {
+	navigation: auto;
+}
+::view-transition-old(root) {
+	animation: page-out 0.42s cubic-bezier(0.33, 0, 0.67, 1) both;
+}
+::view-transition-new(root) {
+	animation: page-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+::view-transition-group(site-nav) {
+	animation: none;
+}
+@keyframes page-out {
+	to {
+		opacity: 0;
+	}
+}
+@keyframes page-in {
+	from {
+		opacity: 0;
+		transform: scale(1.008);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	@view-transition {
+		navigation: none;
+	}
+}
+
+/* Legacy page styles (archive/article pages): layered so Tailwind utilities win. */
+@layer base {
+
 :root {
-	--color-bg: #f5f7fb;
+	/* DTI palette (Philippine flag colors) */
+	--dti-blue: #0038a8;
+	--dti-blue-dark: #002a80;
+	--dti-red: #ce1126;
+	--dti-gold: #fcd116;
+	--dti-navy: #0a1f44;
+
+	--color-bg: #f4f6fa;
 	--color-surface: #ffffff;
-	--color-text: #16213b;
-	--color-muted: #5d6880;
-	--color-border: #e2e7f1;
-	--color-primary: #0b4a9c;
-	--color-primary-dark: #07366f;
-	--color-accent: #e3a008;
-	--color-accent-soft: #fdf3d8;
-	--radius-sm: 8px;
-	--radius-md: 14px;
-	--radius-lg: 22px;
-	--shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
-	--shadow-md: 0 10px 30px rgb(16 24 40 / 8%);
-	--shadow-lg: 0 24px 60px rgb(16 24 40 / 14%);
-	--max-width: 1160px;
-	--font-sans:
-		'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
-		sans-serif;
+	--color-text: #111b33;
+	--color-muted: #53607a;
+	--color-border: #dbe1ec;
+	--color-primary: var(--dti-blue);
+	--color-primary-dark: var(--dti-blue-dark);
+	--color-accent: var(--dti-red);
+	--color-accent-soft: #fbe9ec;
+	--radius-sm: 2px;
+	--radius-md: 3px;
+	--radius-lg: 4px;
+	--shadow-sm: 0 1px 2px rgb(10 31 68 / 8%);
+	--shadow-md: 0 8px 24px rgb(10 31 68 / 10%);
+	--shadow-lg: 0 20px 48px rgb(10 31 68 / 16%);
+	--max-width: 1200px;
 }
 
 *,
@@ -32,12 +160,6 @@ html {
 
 body {
 	margin: 0;
-	background: var(--color-bg);
-	color: var(--color-text);
-	font-family: var(--font-sans);
-	font-size: 16px;
-	line-height: 1.6;
-	-webkit-font-smoothing: antialiased;
 }
 
 img,
@@ -48,20 +170,20 @@ video {
 }
 
 a {
-	color: var(--color-primary);
 	text-decoration: none;
 }
 
-a:hover {
-	text-decoration: underline;
+.prose a,
+.section-link {
+	color: var(--color-primary);
 }
 
 h1,
 h2,
 h3,
 h4 {
+	font-family: var(--font-display);
 	line-height: 1.2;
-	color: var(--color-text);
 }
 
 .container {
@@ -74,37 +196,49 @@ h4 {
 }
 
 .eyebrow {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
 	margin: 0 0 0.75rem;
-	padding: 0.3rem 0.75rem;
-	border-radius: 999px;
-	background: var(--color-accent-soft);
-	color: #7a5800;
+	color: var(--dti-red);
 	font-size: 0.75rem;
 	font-weight: 700;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
+}
+
+.eyebrow::before {
+	content: '';
+	width: 1.6rem;
+	height: 2px;
+	background: currentColor;
 }
 
 .button {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
-	padding: 0.7rem 1.2rem;
-	border-radius: 999px;
+	padding: 0.75rem 1.4rem;
+	border-radius: var(--radius-sm);
 	background: var(--color-primary);
 	color: #fff;
 	font-weight: 600;
 	font-size: 0.9rem;
 	transition:
 		background 0.2s ease,
-		transform 0.2s ease;
+		color 0.2s ease;
 }
 
 .button:hover {
 	background: var(--color-primary-dark);
 	text-decoration: none;
-	transform: translateY(-1px);
+}
+
+.button:focus-visible,
+a:focus-visible,
+button:focus-visible {
+	outline: 3px solid var(--dti-gold);
+	outline-offset: 2px;
 }
 
 .button--ghost {
@@ -230,4 +364,20 @@ h4 {
 	.section {
 		padding-block: 2.5rem;
 	}
+}
+
+.skip-link {
+	position: absolute;
+	top: -100px;
+	left: 1rem;
+	z-index: 100;
+	padding: 0.7rem 1rem;
+	background: var(--dti-navy);
+	color: #fff;
+}
+
+.skip-link:focus {
+	top: 0.5rem;
+}
+
 }

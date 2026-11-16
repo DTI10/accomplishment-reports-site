@@ -1,0 +1,163 @@
+---
+import { getPostHref, getProvinces, getPublishedPosts } from '../lib/content';
+
+const PAGE = 6;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const posts = [...(await getPublishedPosts('articles')), ...(await getPublishedPosts('news'))].sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const items = posts.map((post) => {
+	const d = post.data.date;
+	return {
+		href: getPostHref(post),
+		title: post.data.title,
+		summary: post.data.description,
+		image: post.data.image || post.data.gallery[0]?.image || undefined,
+		iso: d.toISOString().slice(0, 10),
+		day: d.getUTCDate(),
+		month: `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`,
+		type: post.collection === 'news' ? 'News' : 'Article',
+		provinces: getProvinces(post.data),
+	};
+});
+---
+
+<section id="news" class="bg-mist py-24 sm:py-32" data-news>
+	<div class="shell">
+		<div class="max-w-xl">
+			<h2 class="display text-[clamp(2.2rem,4.5vw,3.6rem)] text-navy">News and accomplishments</h2>
+			<p class="mt-5 text-ink/75">The latest news and accomplishments from the Department of Trade and Industry, Region 10.</p>
+		</div>
+
+		{
+			items.length === 0 ? (
+				<p class="mt-14 rounded-md border border-dashed border-dti-blue/30 p-12 text-center text-ink/60">
+					No stories have been published yet.
+				</p>
+			) : (
+				<ul class="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-list>
+					{items.map((u) => (
+						<li>
+							<a href={u.href} class="card group block">
+								<div class="relative">
+									{u.image ? (
+										<img src={u.image} alt="" loading="lazy" class="aspect-[3/2] w-full rounded-md object-cover" />
+									) : (
+										<div class="ph aspect-[3/2] w-full rounded-md" aria-hidden="true" />
+									)}
+									<time datetime={u.iso} class="stamp">
+										<span class="stamp-day">{u.day}</span>
+										<span class="stamp-month">{u.month}</span>
+									</time>
+								</div>
+								<div class="mt-10">
+									<p class="mb-2 text-[0.7rem] font-semibold tracking-[0.18em] text-ink/55 uppercase">{u.type}
+										{u.provinces.length > 0 && <span class="text-dti-blue"> · {u.provinces.join(', ')}</span>}
+									</p>
+									<h3 class="card-title text-xl leading-snug font-semibold tracking-tight text-navy">{u.title}</h3>
+									{u.summary && <p class="card-summary mt-2 text-[0.975rem] leading-relaxed text-ink/65">{u.summary}</p>}
+								</div>
+							</a>
+						</li>
+					))}
+				</ul>
+			)
+		}
+
+		<div class="mt-16 flex flex-wrap items-center gap-x-8 gap-y-5">
+			<button type="button" class="btn border border-navy/30 text-navy hover:border-dti-blue hover:bg-dti-blue hover:text-mist" data-more hidden>
+				Show more
+			</button>
+			<p class="text-sm text-ink/60 sm:ml-auto" data-status aria-live="polite"></p>
+		</div>
+	</div>
+</section>
+
+<style>
+	.ph {
+		background:
+			url('/brand/dti-rapid.png') no-repeat center / auto 46%,
+			var(--color-mist-deep);
+		background-blend-mode: normal;
+	}
+	/* Calendar-style date stamp overlapping the photo */
+	.stamp {
+		position: absolute;
+		left: 1rem;
+		bottom: -1.75rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		min-width: 4rem;
+		padding: 0.55rem 0.7rem 0.5rem;
+		border-top: 3px solid var(--color-dti-gold);
+		border-radius: 3px;
+		background: var(--color-navy);
+		color: var(--color-mist);
+		box-shadow:
+			0 0 0 3px var(--color-mist),
+			0 10px 20px -10px rgb(6 22 51 / 0.6);
+		line-height: 1;
+	}
+	.stamp-day {
+		font-family: var(--font-display);
+		font-stretch: 100%;
+		font-weight: 700;
+		font-size: 1.7rem;
+		letter-spacing: -0.01em;
+	}
+	.stamp-month {
+		margin-top: 0.4rem;
+		padding-top: 0.4rem;
+		border-top: 1px solid rgb(234 238 246 / 0.22);
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: rgb(234 238 246 / 0.8);
+		white-space: nowrap;
+	}
+	.card-title,
+	.card-summary {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.card-title {
+		-webkit-line-clamp: 3;
+	}
+	.card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.card:hover .card-title,
+	.card:focus-visible .card-title {
+		text-decoration: underline;
+		text-decoration-color: var(--color-navy);
+		text-decoration-thickness: 1px;
+		text-underline-offset: 4px;
+	}
+</style>
+
+<script define:vars={{ PAGE }}>
+	// Reveal items page by page. Without JavaScript every card stays visible.
+	const root = document.querySelector('[data-news]');
+	const more = root?.querySelector('[data-more]');
+	if (root && more) {
+		const items = [...root.querySelectorAll('[data-list] > li')];
+		const status = root.querySelector('[data-status]');
+		const render = (expanded) => {
+			items.forEach((li, i) => (li.hidden = !expanded && i >= PAGE));
+			const shown = expanded ? items.length : Math.min(PAGE, items.length);
+			more.hidden = shown === items.length;
+			more.textContent = `Show ${items.length - shown} more`;
+			status.textContent = `Showing ${shown} of ${items.length}`;
+		};
+		more.addEventListener('click', () => {
+			render(true);
+			items[PAGE]?.querySelector('a')?.focus();
+		});
+		render(false);
+	}
+</script>

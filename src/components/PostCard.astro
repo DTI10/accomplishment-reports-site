@@ -9,30 +9,21 @@ interface Props {
 const { post, featured = false } = Astro.props;
 const { title, date, description, image, tags } = post.data;
 
-const formattedDate = formatPostDate(date);
 const href = getPostHref(post);
 const typeLabel = post.collection === 'news' ? 'News' : 'Article';
+const fullDate = formatPostDate(date, 'long');
 ---
 
 <article class:list={['post-card', { 'post-card--featured': featured }]}>
 	<a class="card-media" href={href} aria-hidden="true" tabindex="-1">
-		{
-			image ? (
-				<img src={image} alt="" loading="lazy" />
-			) : (
-				<div class="card-placeholder">
-					<span>{title.slice(0, 2).toUpperCase()}</span>
-				</div>
-			)
-		}
-		<span class:list={['card-type', `card-type--${post.collection}`]}>{typeLabel}</span>
+		{image ? <img src={image} alt="" loading="lazy" /> : <div class="card-placeholder" />}
 	</a>
 
 	<div class="card-body">
-		<div class="card-meta">
-			<time datetime={date.toISOString()}>{formattedDate}</time>
-			{tags.length > 0 && <span class="card-tag">{tags[0]}</span>}
-		</div>
+		<p class="card-meta">
+			<span class="card-type">{typeLabel}</span>
+			<time datetime={date.toISOString()}>{fullDate}</time>
+		</p>
 
 		<h3 class="card-title">
 			<a href={href}>{title}</a>
@@ -40,9 +31,7 @@ const typeLabel = post.collection === 'news' ? 'News' : 'Article';
 
 		{description && <p class="card-excerpt">{description}</p>}
 
-		<a class="card-link" href={href}>
-			Read {typeLabel.toLowerCase()} <span aria-hidden="true">→</span>
-		</a>
+		<a class="card-link" href={href}>Read full story</a>
 	</div>
 </article>
 
@@ -50,120 +39,71 @@ const typeLabel = post.collection === 'news' ? 'News' : 'Article';
 	.post-card {
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-sm);
-		transition:
-			transform 0.25s ease,
-			box-shadow 0.25s ease;
-	}
-
-	.post-card:hover {
-		transform: translateY(-4px);
-		box-shadow: var(--shadow-md);
+		background: transparent;
 	}
 
 	.card-media {
-		position: relative;
 		display: block;
-		aspect-ratio: 16 / 9;
+		aspect-ratio: 3 / 2;
 		overflow: hidden;
-		background: #e8eef8;
+		background: var(--dti-navy);
 	}
 
-	.card-media img {
+	.card-media img,
+	.card-placeholder {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.4s ease;
-	}
-
-	.post-card:hover .card-media img {
-		transform: scale(1.04);
 	}
 
 	.card-placeholder {
-		display: grid;
-		place-items: center;
-		width: 100%;
-		height: 100%;
-		background:
-			radial-gradient(circle at 20% 20%, rgb(255 255 255 / 35%), transparent 45%),
-			linear-gradient(135deg, var(--color-primary), #1d6fd1 55%, #2b8ad6);
-	}
-
-	.card-placeholder span {
-		font-size: 2.4rem;
-		font-weight: 800;
-		color: rgb(255 255 255 / 90%);
-		letter-spacing: 0.06em;
-	}
-
-	.card-type {
-		position: absolute;
-		top: 0.8rem;
-		left: 0.8rem;
-		padding: 0.22rem 0.65rem;
-		border-radius: 999px;
-		background: rgb(255 255 255 / 92%);
-		color: var(--color-primary);
-		font-size: 0.68rem;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		backdrop-filter: blur(6px);
-	}
-
-	.card-type--news {
-		background: #fff3d6;
-		color: #7a5800;
+		background: var(--dti-navy);
 	}
 
 	.card-body {
 		display: flex;
 		flex: 1;
 		flex-direction: column;
-		gap: 0.6rem;
-		padding: 1.35rem 1.4rem 1.5rem;
+		gap: 0.55rem;
+		padding-top: 1rem;
 	}
 
 	.card-meta {
 		display: flex;
-		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.6rem;
-		font-size: 0.78rem;
+		margin: 0;
 		color: var(--color-muted);
+		font-size: 0.85rem;
 	}
 
-	.card-meta time {
-		font-weight: 600;
-		letter-spacing: 0.02em;
-		text-transform: uppercase;
-	}
-
-	.card-tag {
-		padding: 0.15rem 0.55rem;
-		border-radius: 999px;
-		background: var(--color-accent-soft);
-		color: #7a5800;
-		font-size: 0.7rem;
+	.card-type {
+		color: var(--dti-red);
 		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-size: 0.78rem;
+	}
+
+	.card-type::after {
+		content: '|';
+		margin-left: 0.6rem;
+		color: var(--color-border);
 	}
 
 	.card-title {
 		margin: 0;
-		font-size: 1.22rem;
+		font-size: 1.3rem;
+		line-height: 1.3;
 	}
 
 	.card-title a {
-		color: var(--color-text);
+		color: var(--dti-navy);
 	}
 
 	.card-title a:hover {
-		color: var(--color-primary);
-		text-decoration: none;
+		color: var(--dti-blue);
+		text-decoration: underline;
 	}
 
 	.card-excerpt {
@@ -173,31 +113,17 @@ const typeLabel = post.collection === 'news' ? 'News' : 'Article';
 		margin: 0;
 		overflow: hidden;
 		color: var(--color-muted);
-		font-size: 0.93rem;
+		font-size: 0.98rem;
 	}
 
 	.card-link {
 		margin-top: auto;
-		padding-top: 0.5rem;
-		font-size: 0.86rem;
-		font-weight: 700;
-		color: var(--color-primary);
-	}
-
-	.card-link:hover {
-		text-decoration: none;
-	}
-
-	.card-link span {
-		display: inline-block;
-		transition: transform 0.2s ease;
-	}
-
-	.post-card:hover .card-link span {
-		transform: translateX(3px);
+		padding-top: 0.4rem;
+		font-size: 0.9rem;
+		font-weight: 600;
 	}
 
 	.post-card--featured .card-title {
-		font-size: 1.55rem;
+		font-size: 1.9rem;
 	}
 </style>
