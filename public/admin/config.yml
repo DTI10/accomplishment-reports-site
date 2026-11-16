@@ -21,10 +21,23 @@ publish_mode:
 media_folder: public/media
 public_folder: /media
 
+# Shrink photos in the browser before they are saved. Phone photos are often 5-10 MB each, and an entry
+# with several of them is sent to GitHub in one request that can be too large ("Failed to fetch").
+# Photos larger than 2400px are scaled down (never up) and saved as WebP, usually 300-800 KB.
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image:
+          format: webp
+          quality: 85
+          width: 2400
+          height: 2400
+
 collections:
   - name: articles
-    label: Articles
-    label_singular: Article
+    label: Accomplishments
+    label_singular: Accomplishment
     folder: content/articles
     create: true
     slug: '{{slug}}'
@@ -39,34 +52,11 @@ collections:
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
-      - {
-          label: Description,
-          name: description,
-          widget: text,
-          required: false,
-          hint: Short summary shown on article cards and in search results.
-        }
-      - { label: Author, name: author, widget: string, required: false }
-      - label: Program
-        name: program
-        widget: select
-        required: false
-        hint: The DTI program or project this story belongs to.
-        options:
-          - KMME
-          - Shared Service Facility (SSF)
-          - Pondo sa Pagbabago at Pag-asenso (P3)
-          - RAPID Growth
-          - Diskwento Caravan
-          - Bagwis
-          - Consumer Protection
-          - Trade Facilitation
       - label: Province / Office
         name: province
         widget: select
-        multiple: true
         required: false
-        hint: Shown as a location badge on the home page. Pick one or more.
+        hint: Pick one. Shown as a location badge on the cards and pages.
         options:
           - Regional Office
           - Bukidnon
@@ -75,52 +65,61 @@ collections:
           - Misamis Occidental
           - Misamis Oriental
       - {
-          label: Cover image,
+          label: Main photo,
           name: image,
           widget: image,
           required: false,
-          hint: Displayed on cards and at the top of the article.
+          hint: "Landscape photo, about 1600px wide. Shown at the top of the story.",
         }
-      - {
-          label: Cover image alt text,
-          name: image_alt,
-          widget: string,
-          required: false,
-          hint: Describe the image for screen readers. Defaults to the title.
-        }
-      - {
-          label: Featured,
-          name: featured,
-          widget: boolean,
-          default: false,
-          hint: Pins this story to the home page hero.
-        }
-      - label: Event details
-        name: event
-        widget: object
-        required: false
-        collapsed: true
-        hint: Fill in for events, trainings, or activities with a schedule.
-        fields:
-          - { label: Start, name: start, widget: datetime }
-          - { label: End, name: end, widget: datetime, required: false }
-          - { label: Venue, name: venue, widget: string, required: false }
-          - {
-              label: Registration link,
-              name: registration_url,
-              widget: string,
-              required: false,
-              hint: Full URL where readers can register.
-            }
-      - label: Gallery
-        name: gallery
+      - name: photos
+        label: More photos
+        label_singular: Photo
         widget: list
         required: false
-        hint: Optional image carousel shown at the bottom of the article.
-        summary: '{{fields.caption}}'
+        max: 4
+        collapsed: false
+        summary: '{{fields.size}}, {{fields.side}}'
+        thumbnail: image
+        hint: "Optional, up to 4. They are placed inside the text and alternate left and right."
         fields:
-          - { label: Image, name: image, widget: image }
-          - { label: Caption, name: caption, widget: string, required: false }
+          - { name: image, label: Photo, widget: image }
+          - name: caption
+            label: Caption
+            widget: string
+            required: false
+            hint: "Optional. Small grey text under the photo, e.g. Photo by Juan Dela Cruz."
+          - name: size
+            label: Size
+            widget: select
+            default: medium
+            options:
+              - { label: "Small", value: small }
+              - { label: "Medium", value: medium }
+              - { label: "Large", value: large }
+              - { label: "Full width (no text beside it)", value: full }
+          - name: side
+            label: Side
+            widget: select
+            default: auto
+            options:
+              - { label: "Auto (alternate left and right)", value: auto }
+              - { label: "Left", value: left }
+              - { label: "Right", value: right }
+          - name: after
+            label: Place after paragraph
+            widget: number
+            value_type: int
+            min: 0
+            required: false
+            hint: "Optional. Number of the paragraph to place this photo after (subheadings count as a paragraph). 0 = top of the text. Leave empty for automatic. A number larger than the text puts it at the end."
+      - { label: Author, name: author, widget: string, required: false }
+      - {
+          label: Story text,
+          name: body,
+          widget: richtext,
+          required: true,
+          hint: "Write or paste the text here (pasting from Word or Google Docs is fine; it is cleaned on save). A line that is only bold text becomes a subheading. Add photos with the photo fields above, not inside the text."
+        }
       - label: Tags
         name: tags
         widget: select
@@ -136,62 +135,6 @@ collections:
           - Events
           - Awards
           - Financing
-      - label: Key figures
-        name: stats
-        widget: list
-        required: false
-        hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
-        summary: '{{fields.label}}: {{fields.value}}'
-        fields:
-          - { label: Label, name: label, widget: string }
-          - { label: Value, name: value, widget: string }
-      - {
-          label: Partners,
-          name: partners,
-          widget: list,
-          required: false,
-          hint: Partner agencies, offices, or organizations.
-        }
-      - label: Attachments
-        name: attachments
-        widget: list
-        required: false
-        hint: Downloadable files such as press releases, MOAs, or reports.
-        summary: '{{fields.title}}'
-        fields:
-          - { label: Title, name: title, widget: string }
-          - { label: File, name: file, widget: file }
-      - label: Contact
-        name: contact
-        widget: object
-        required: false
-        collapsed: true
-        hint: Who readers can reach for more information.
-        fields:
-          - { label: Name, name: name, widget: string, required: false }
-          - { label: Role, name: role, widget: string, required: false }
-          - { label: Email, name: email, widget: string, required: false }
-          - { label: Phone, name: phone, widget: string, required: false }
-      - label: Related articles
-        name: related
-        widget: relation
-        collection: articles
-        search_fields: [title]
-        display_fields: [title]
-        multiple: true
-        required: false
-        filters:
-          - field: slug
-            values: ['{{slug}}']
-            exclude: true
-        hint: Pick other articles to show under "Read next".
-      - {
-          label: Body,
-          name: body,
-          widget: richtext,
-          required: true,
-          hint: Markdown content of the article.
-        }
 
   - name: news
     label: News
@@ -210,34 +153,11 @@ collections:
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
-      - {
-          label: Description,
-          name: description,
-          widget: text,
-          required: false,
-          hint: Short summary shown on news cards and in search results.
-        }
-      - { label: Author, name: author, widget: string, required: false }
-      - label: Program
-        name: program
-        widget: select
-        required: false
-        hint: The DTI program or project this item belongs to.
-        options:
-          - KMME
-          - Shared Service Facility (SSF)
-          - Pondo sa Pagbabago at Pag-asenso (P3)
-          - RAPID Growth
-          - Diskwento Caravan
-          - Bagwis
-          - Consumer Protection
-          - Trade Facilitation
       - label: Province / Office
         name: province
         widget: select
-        multiple: true
         required: false
-        hint: Shown as a location badge on the home page. Pick one or more.
+        hint: Pick one. Shown as a location badge on the cards and pages.
         options:
           - Regional Office
           - Bukidnon
@@ -246,52 +166,61 @@ collections:
           - Misamis Occidental
           - Misamis Oriental
       - {
-          label: Cover image,
+          label: Main photo,
           name: image,
           widget: image,
           required: false,
-          hint: Displayed on cards and at the top of the news item.
+          hint: "Landscape photo, about 1600px wide. Shown at the top of the story.",
         }
-      - {
-          label: Cover image alt text,
-          name: image_alt,
-          widget: string,
-          required: false,
-          hint: Describe the image for screen readers. Defaults to the title.
-        }
-      - {
-          label: Featured,
-          name: featured,
-          widget: boolean,
-          default: false,
-          hint: Pins this item to the home page hero.
-        }
-      - label: Event details
-        name: event
-        widget: object
-        required: false
-        collapsed: true
-        hint: Fill in for events, trainings, or activities with a schedule.
-        fields:
-          - { label: Start, name: start, widget: datetime }
-          - { label: End, name: end, widget: datetime, required: false }
-          - { label: Venue, name: venue, widget: string, required: false }
-          - {
-              label: Registration link,
-              name: registration_url,
-              widget: string,
-              required: false,
-              hint: Full URL where readers can register.
-            }
-      - label: Gallery
-        name: gallery
+      - name: photos
+        label: More photos
+        label_singular: Photo
         widget: list
         required: false
-        hint: Optional image carousel shown at the bottom of the news item.
-        summary: '{{fields.caption}}'
+        max: 4
+        collapsed: false
+        summary: '{{fields.size}}, {{fields.side}}'
+        thumbnail: image
+        hint: "Optional, up to 4. They are placed inside the text and alternate left and right."
         fields:
-          - { label: Image, name: image, widget: image }
-          - { label: Caption, name: caption, widget: string, required: false }
+          - { name: image, label: Photo, widget: image }
+          - name: caption
+            label: Caption
+            widget: string
+            required: false
+            hint: "Optional. Small grey text under the photo, e.g. Photo by Juan Dela Cruz."
+          - name: size
+            label: Size
+            widget: select
+            default: medium
+            options:
+              - { label: "Small", value: small }
+              - { label: "Medium", value: medium }
+              - { label: "Large", value: large }
+              - { label: "Full width (no text beside it)", value: full }
+          - name: side
+            label: Side
+            widget: select
+            default: auto
+            options:
+              - { label: "Auto (alternate left and right)", value: auto }
+              - { label: "Left", value: left }
+              - { label: "Right", value: right }
+          - name: after
+            label: Place after paragraph
+            widget: number
+            value_type: int
+            min: 0
+            required: false
+            hint: "Optional. Number of the paragraph to place this photo after (subheadings count as a paragraph). 0 = top of the text. Leave empty for automatic. A number larger than the text puts it at the end."
+      - { label: Author, name: author, widget: string, required: false }
+      - {
+          label: Story text,
+          name: body,
+          widget: richtext,
+          required: true,
+          hint: "Write or paste the text here (pasting from Word or Google Docs is fine; it is cleaned on save). A line that is only bold text becomes a subheading. Add photos with the photo fields above, not inside the text."
+        }
       - label: Tags
         name: tags
         widget: select
@@ -307,62 +236,6 @@ collections:
           - Events
           - Awards
           - Financing
-      - label: Key figures
-        name: stats
-        widget: list
-        required: false
-        hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
-        summary: '{{fields.label}}: {{fields.value}}'
-        fields:
-          - { label: Label, name: label, widget: string }
-          - { label: Value, name: value, widget: string }
-      - {
-          label: Partners,
-          name: partners,
-          widget: list,
-          required: false,
-          hint: Partner agencies, offices, or organizations.
-        }
-      - label: Attachments
-        name: attachments
-        widget: list
-        required: false
-        hint: Downloadable files such as press releases, MOAs, or reports.
-        summary: '{{fields.title}}'
-        fields:
-          - { label: Title, name: title, widget: string }
-          - { label: File, name: file, widget: file }
-      - label: Contact
-        name: contact
-        widget: object
-        required: false
-        collapsed: true
-        hint: Who readers can reach for more information.
-        fields:
-          - { label: Name, name: name, widget: string, required: false }
-          - { label: Role, name: role, widget: string, required: false }
-          - { label: Email, name: email, widget: string, required: false }
-          - { label: Phone, name: phone, widget: string, required: false }
-      - label: Related news
-        name: related
-        widget: relation
-        collection: news
-        search_fields: [title]
-        display_fields: [title]
-        multiple: true
-        required: false
-        filters:
-          - field: slug
-            values: ['{{slug}}']
-            exclude: true
-        hint: Pick other news items to show under "Read next".
-      - {
-          label: Body,
-          name: body,
-          widget: richtext,
-          required: true,
-          hint: Markdown content of the news item.
-        }
 
 # Site settings. Only admins are allowed to merge changes to this file via
 # the branch protection + CODEOWNERS setup described in README.md.
@@ -379,6 +252,6 @@ singletons:
         widget: boolean
         default: false
         hint: >-
-          When enabled, article and news pull requests marked as ready by an
+          When enabled, accomplishment and news pull requests marked as ready by an
           editor are auto-approved and merged without an admin. Settings changes
           still require an admin.
