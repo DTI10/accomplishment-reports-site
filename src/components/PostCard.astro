@@ -3,6 +3,8 @@ import { getPostHref, getProvinces, getSummary, type Post } from "../lib/content
 
 interface Props {
   post: Post
+  /** Name the photo and title so they glide into / out of the story page (see global.css). */
+  morph?: boolean
 }
 
 const MONTHS = [
@@ -20,7 +22,10 @@ const MONTHS = [
   "Dec"
 ]
 
-const { post } = Astro.props
+const { post, morph = false } = Astro.props
+const vtId = `${post.collection}-${post.id}`
+const photoVt = morph ? `view-transition-name: sp-${vtId}; view-transition-class: story-photo;` : undefined
+const titleVt = morph ? `view-transition-name: st-${vtId}; view-transition-class: story-title;` : undefined
 const { title, date } = post.data
 const summary = getSummary(post)
 
@@ -40,6 +45,7 @@ const month = `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
         src={image}
         alt=""
         loading="lazy"
+        style={photoVt}
         class="aspect-[3/2] w-full rounded-md object-cover"
       />
     ) : (
@@ -67,7 +73,7 @@ const month = `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
         <span class="text-dti-blue"> · {provinces.join(", ")}</span>
       )}
     </p>
-    <h3 class="line-clamp-3 text-xl leading-snug font-semibold tracking-tight text-navy decoration-navy decoration-1 underline-offset-4 group-hover:underline group-focus-visible:underline">
+    <h3 style={titleVt} class="line-clamp-3 text-xl leading-snug font-semibold tracking-tight text-navy decoration-navy decoration-1 underline-offset-4 group-hover:underline group-focus-visible:underline">
       {title}
     </h3>
     {summary && (

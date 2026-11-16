@@ -76,8 +76,8 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 								className={cn('fh-photo', active && 'is-active')}
 								// the home page script adds data-loaded before React takes over (it drives the fade-in)
 								suppressHydrationWarning
-								// Deliberately NOT given a view-transition-name: a named photo is drawn in its own layer during page
-								// transitions, above the gradient overlay, so the photo would show un-darkened until the transition ends.
+								// page transition: the active photo glides into the story page's main photo
+								style={active ? ({ viewTransitionName: `sp-${item.id}`, viewTransitionClass: 'story-photo' } as React.CSSProperties) : undefined}
 								// all stacked photos load up front so each zoom plays on a ready image
 								loading="eager"
 								fetchPriority={i === 0 ? 'high' : 'auto'}
@@ -86,7 +86,12 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 							) : (
 								<div className="fh-photo fh-fallback" aria-hidden="true" />
 							)}
-							<div className="fh-shade" aria-hidden="true" />
+							{/* named too: a named photo is drawn in its own layer, so the gradient must travel with it or the photo would show un-darkened */}
+							<div
+								className="fh-shade"
+								aria-hidden="true"
+								style={active ? ({ viewTransitionName: `sh-${item.id}`, viewTransitionClass: 'story-shade' } as React.CSSProperties) : undefined}
+							/>
 
 							<div className="fh-content shell">
 								<div
@@ -102,7 +107,10 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 											</Badge>
 										))}
 									</div>
-									<h3 className="fh-title display mt-5">
+									<h3
+										className="fh-title display mt-5"
+										style={active ? ({ viewTransitionName: `st-${item.id}`, viewTransitionClass: 'story-title' } as React.CSSProperties) : undefined}
+									>
 										<a href={item.href} className="focus-visible:outline-dti-gold">
 											{item.title}
 										</a>
