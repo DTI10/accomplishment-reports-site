@@ -1,70 +1,117 @@
 ---
-import { navItems } from '../lib/nav';
+import { navItems } from "../lib/nav"
 
-const group = (label: string) => navItems.find((i) => i.label === label)?.children ?? [];
-const stories = group('Stories & Press Release');
-const programs = group('Programs');
+const group = (label: string) =>
+  navItems.find((i) => i.label === label)?.children ?? []
+const stories = group("Stories & Press Release")
+const programs = group("Programs")
 ---
 
 <footer id="contact" class="bg-navy text-mist">
-	<div class="shell grid gap-14 py-20 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
-		<div>
-			<p class="flex items-center gap-4">
-				<img src="/brand/dti-white.png" alt="DTI Philippines" class="h-20 w-auto" />
-				<span class="text-sm leading-tight text-mist/70">
-					Department of<br />Trade and Industry<br />
-					<span class="font-semibold text-mist">Region 10</span>
-				</span>
-			</p>
-			<p class="mt-6 max-w-sm text-mist/75">
-				Enabling innovative, competitive, job-generating, and inclusive businesses in Northern Mindanao.
-			</p>
-		</div>
+  <div class="shell grid gap-14 py-20 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
+    <div>
+      <p class="flex items-center gap-4">
+        <img
+          src="/brand/dti-white.png"
+          alt="DTI Philippines"
+          class="h-20 w-auto"
+        />
+        <span class="text-sm leading-tight text-mist/70">
+          Department of
+          <br />
+          Trade and Industry
+          <br />
+          <span class="font-semibold text-mist">Region 10</span>
+        </span>
+      </p>
+      <p class="mt-6 max-w-sm text-mist/75">
+        Enabling innovative, competitive, job-generating, and inclusive
+        businesses in Northern Mindanao.
+      </p>
+    </div>
 
-		<nav aria-label="Stories and press release">
-			<h2 class="font-semibold text-mist">Stories &amp; Press Release</h2>
-			<ul class="mt-5 space-y-3 text-mist/75">
-				{stories.map((l) => <li><a href={l.href} class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4">{l.label}</a></li>)}
-			</ul>
-		</nav>
+    <nav aria-label="Stories and press release">
+      <h2 class="font-semibold text-mist">Stories &amp; Press Release</h2>
+      <ul class="mt-5 space-y-3 text-mist/75">
+        {stories.map((l) => (
+          <li>
+            <a
+              href={l.href}
+              class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
 
-		<nav aria-label="Programs">
-			<h2 class="font-semibold text-mist">Programs</h2>
-			<ul class="mt-5 space-y-3 text-mist/75">
-				{programs.map((l) => <li><a href={l.href} class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4">{l.label}</a></li>)}
-				<li><a href="#" class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4">Accomplishments</a></li>
-				<li><a href="#" class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4">About DTI Region 10</a></li>
-			</ul>
-		</nav>
+    <nav aria-label="Programs">
+      <h2 class="font-semibold text-mist">Programs</h2>
+      <ul class="mt-5 space-y-3 text-mist/75">
+        {programs.map((l) => (
+          <li>
+            <a
+              href={l.href}
+              class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a
+            href="#"
+            class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4"
+          >
+            Accomplishments
+          </a>
+        </li>
+        <li>
+          <a
+            href="#"
+            class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4"
+          >
+            About DTI Region 10
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-		<div>
-			<h2 class="font-semibold text-mist">Regional office</h2>
-			<address class="mt-5 max-w-xs not-italic text-mist/75">
-				DTI Region 10 Office<br />Cagayan de Oro City, Misamis Oriental
-			</address>
-			<!-- TODO: verified office phone number and email (staging values looked malformed). -->
-			<a href="https://www.facebook.com/DTI.Region10" target="_blank" rel="noopener" class="mt-4 inline-block text-mist/75 underline decoration-dti-gold underline-offset-4 hover:text-mist">
-				facebook.com/DTI.Region10
-			</a>
-		</div>
-	</div>
-	<div class="border-t border-black/10 bg-[#e6e8ec] text-ink">
-		<div class="shell flex flex-col gap-6 py-8 sm:flex-row sm:items-center sm:gap-8">
-			<div class="flex items-center gap-4">
-				<img src="/brand/republika.png" alt="Seal of the Republic of the Philippines" class="h-16 w-auto brightness-0 opacity-80" />
-				<p class="republika text-2xl leading-tight text-navy">Republic of the Philippines</p>
-			</div>
-			<p class="text-sm text-ink/70 sm:ml-auto sm:max-w-md sm:text-right">
-				All content is in the public domain unless otherwise stated. © {new Date().getFullYear()} Department of Trade and Industry, Region 10.
-			</p>
-		</div>
-	</div>
+    <div>
+      <h2 class="font-semibold text-mist">Regional office</h2>
+      <address class="mt-5 max-w-xs not-italic text-mist/75">
+        DTI Region 10 Office
+        <br />
+        Cagayan de Oro City, Misamis Oriental
+      </address>
+      <!-- TODO: verified office phone number and email (staging values looked malformed). -->
+      <a
+        href="https://www.facebook.com/DTI.Region10"
+        target="_blank"
+        rel="noopener"
+        class="mt-4 inline-block text-mist/75 underline decoration-dti-gold underline-offset-4 hover:text-mist"
+      >
+        facebook.com/DTI.Region10
+      </a>
+    </div>
+  </div>
+  <div class="border-t border-black/10 bg-[#e6e8ec] text-ink">
+    <div class="shell flex flex-col gap-6 py-8 sm:flex-row sm:items-center sm:gap-8">
+      <div class="flex items-center gap-4">
+        <img
+          src="/brand/republika.png"
+          alt="Seal of the Republic of the Philippines"
+          class="h-16 w-auto brightness-0 opacity-80"
+        />
+        <p class="font-blackletter text-2xl leading-tight font-normal text-navy">
+          Republic of the Philippines
+        </p>
+      </div>
+      <p class="text-sm text-ink/70 sm:ml-auto sm:max-w-md sm:text-right">
+        All content is in the public domain unless otherwise stated. ©{" "}
+        {new Date().getFullYear()} Department of Trade and Industry, Region 10.
+      </p>
+    </div>
+  </div>
 </footer>
-
-<style>
-	/* Government letterhead style: Old English Text MT where installed, free blackletter fallback elsewhere */
-	.republika {
-		font-family: 'Old English Text MT', 'UnifrakturMaguntia', serif;
-		font-weight: 400;
-	}
-</style>
