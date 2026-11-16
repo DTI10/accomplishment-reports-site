@@ -27,6 +27,7 @@ const pageTitle = title.includes('DTI') ? title : `${title} · DTI Region 10`;
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<script is:inline>document.documentElement.classList.add("js")</script>
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -58,6 +59,7 @@ const pageTitle = title.includes('DTI') ? title : `${title} · DTI Region 10`;
 		/>
 
 		<title>{pageTitle}</title>
+		<slot name="head" />
 	</head>
 	<body>
 		<a class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-navy focus:px-4 focus:py-2 focus:text-white" href="#main">Skip to main content</a>
