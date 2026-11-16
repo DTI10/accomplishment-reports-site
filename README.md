@@ -1,45 +1,38 @@
 # DTI Accomplishments
 
-An Astro site that renders articles and news authored through Sveltia CMS.
+An Astro site that renders accomplishments authored through Sveltia CMS.
 
 ## Content types
 
-| Type     | Folder             | URL                 |
-| :------- | :----------------- | :------------------ |
-| Articles | `content/articles` | `/articles/<slug>/` |
-| News     | `content/news`     | `/news/<slug>/`     |
+| Type                    | Folder             | URL                          |
+| :---------------------- | :----------------- | :--------------------------- |
+| Accomplishments         | `content/articles` | `/articles/<slug>/`          |
+| Province / Office pages | `content/offices`  | `/accomplishments/<office>/` |
 
-Both content types support the same frontmatter:
+The list of all accomplishments is at `/accomplishments/`. Each Province / Office
+page (`/accomplishments/<office>/`) lists every accomplishment whose
+**Province / Office** matches it, so posts sort themselves onto the right page.
+The optional `content/offices/<office>.md` file only sets the banner title
+(`name`).
 
-| Field         | Required | Description                                                   |
-| :------------ | :------- | :------------------------------------------------------------ |
-| `title`       | yes      | Post title.                                                   |
-| `date`        | yes      | Publication date (`YYYY-MM-DD`).                              |
-| `description` | no       | Short summary shown on cards and in search results.           |
-| `author`      | no       | Author name.                                                  |
-| `program`     | no       | DTI program or project the post belongs to.                   |
-| `province`    | no       | List of provinces/offices, shown as location badges.          |
-| `image`       | no       | Cover image path, e.g. `/media/photo.jpg`.                    |
-| `image_alt`   | no       | Cover image alt text. Defaults to the title.                  |
-| `featured`    | no       | Pins the post to the home page hero. Defaults to `false`.     |
-| `event`       | no       | `{ start, end, venue, registration_url }` event details card. |
-| `gallery`     | no       | List of `{ image, caption }` items for the carousel.          |
-| `tags`        | no       | List of topic labels.                                         |
-| `stats`       | no       | List of `{ label, value }` key figures.                       |
-| `partners`    | no       | List of partner agencies, offices, or organizations.          |
-| `attachments` | no       | List of `{ title, file }` downloads.                          |
-| `contact`     | no       | `{ name, role, email, phone }` contact for more information.  |
-| `related`     | no       | Slugs of related posts, shown under “Read next”.              |
+Accomplishments support this frontmatter:
 
-The Markdown `body` is required for both collections and is rendered on the
-post page. Uploaded media is stored in `public/media/` and served from
-`/media/...`.
+| Field      | Required | Description                                                                                             |
+| :--------- | :------- | :------------------------------------------------------------------------------------------------------ |
+| `title`    | yes      | Post title.                                                                                             |
+| `date`     | yes      | Publication date (`YYYY-MM-DD`).                                                                        |
+| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.        |
+| `image`    | no       | Main photo path, e.g. `/media/photo.jpg`. Its alt text comes from the file name.                        |
+| `photos`   | no       | Up to 4 `{ image, caption, size, side, after }` photos placed inside the text.                          |
+| `author`   | no       | Author name, shown under the text.                                                                      |
+| `tags`     | no       | List of topic labels.                                                                                   |
+
+The Markdown `body` is required and is rendered on the post page. The first
+paragraph is used as the summary on cards and in link previews. Uploaded media
+is stored in `public/media/` and served from `/media/...`.
 
 Select-field options are defined in `public/admin/config.yml`:
 
-- **Program:** KMME, Shared Service Facility (SSF), Pondo sa Pagbabago at
-  Pag-asenso (P3), RAPID Growth, Diskwento Caravan, Bagwis, Consumer
-  Protection, Trade Facilitation.
 - **Province / Office:** Regional Office, Bukidnon, Camiguin, Lanao del Norte,
   Misamis Occidental, Misamis Oriental.
 - **Tags:** Trade, MSMEs, Consumer, Advisories, Programs, Events, Awards,
@@ -51,7 +44,7 @@ Sveltia CMS is Git-based, so it uses GitHub accounts rather than its own user
 database. Roles are enforced by GitHub teams and branch protection:
 
 - **Editors** — members of the `editors` GitHub team with repository **Write**
-  access. They can create and edit articles/news, save them as pull requests,
+  access. They can create and edit accomplishments, save them as pull requests,
   and set the status to **Ready**. They cannot merge to `master`, but GitHub
   Write access does allow them to close any PR and delete its branch; see
   [Pull request deletion and recovery](#pull-request-deletion-and-recovery).
@@ -72,10 +65,10 @@ handle if it differs.
 
 ### Publishing workflow
 
-Articles and news use the Editorial Workflow (configured per collection with
+Accomplishments use the Editorial Workflow (configured on the collection with
 `publish_mode` in `public/admin/config.yml`):
 
-1. An editor saves an article or news item. Sveltia opens a pull request.
+1. An editor saves an accomplishment. Sveltia opens a pull request.
 2. The editor sets the **Status** button at the top right to **Ready**.
 3. An admin reviews and merges the pull request, which publishes the post.
 
@@ -132,12 +125,12 @@ auto_publish: true
 ```
 
 When enabled, `.github/workflows/auto-publish-posts.yml` automatically
-approves and merges article and news pull requests that:
+approves and merges accomplishment pull requests that:
 
 - are marked ready (`sveltia-cms/pending_publish`),
 - were opened by a user with editor **Write** access (admins use the normal
   review flow),
-- only change files under `content/articles/`, `content/news/`, or
+- only change files under `content/articles/` or
   `public/media/`.
 
 Settings and code changes are never auto-published.
@@ -148,7 +141,7 @@ Settings and code changes are never auto-published.
 2. Push the workflow changes to `master` first, so GitHub registers the
    `workflow_dispatch` trigger.
 3. Either:
-   - create a throwaway article or news item from an **editor** account, save
+   - create a throwaway accomplishment from an **editor** account, save
      it, and mark it **Ready**; or
    - open **Actions → Auto-publish editor posts → Run workflow** and enter the
      number of an open, ready PR.
@@ -176,13 +169,14 @@ repository. Without the secret, the workflow exits without merging.
 
 - `Nav.astro`, `Footer.astro` — site chrome, including the mobile menu.
 - `BackToTop.astro` — scroll-to-top button with reading progress.
-- `NewsEvents.astro` — home page news and accomplishments grid.
-- `PostCard.astro` — article/news card with type badge.
-- `PostArchive.astro` — shared archive page for `/articles` and `/news`.
-- `PostView.astro` — shared post page with Markdown, event details, stats,
-  gallery, TOC, related posts, and prev/next.
-- `ImageCarousel.astro` — accessible image carousel with dots, arrows, and swipe.
-- `gallery/FeaturedHero.tsx` — home page hero carousel for featured posts.
+- `RecentAccomplishments.astro` — home page accomplishments grid.
+- `PostList.astro` — card grid with search, province/office and year filters.
+- `PostCard.astro` — accomplishment card with date stamp.
+- `PostArchive.astro` — list page for `/accomplishments`.
+- `PostView.astro` — post page with Markdown text, inline photos and a
+  "More accomplishments" strip.
+- `gallery/FeaturedHero.tsx` — home page hero carousel for the latest posts.
+- `pages/accomplishments/[office].astro` — Province / Office pages.
 - `BaseLayout.astro` — HTML shell, metadata, and global styles.
 
 ## Commands

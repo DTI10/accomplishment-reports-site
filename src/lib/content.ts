@@ -1,7 +1,7 @@
 import { firstParagraph } from './storyBody';
 import { getCollection, type CollectionEntry } from 'astro:content';
 
-export type PostCollection = 'articles' | 'news';
+export type PostCollection = 'articles';
 export type Post = CollectionEntry<PostCollection>;
 
 export const getPublishedPosts = async (collection: PostCollection) => {
@@ -10,8 +10,12 @@ export const getPublishedPosts = async (collection: PostCollection) => {
 	return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 };
 
-export const getSectionForCollection = (collection: PostCollection) =>
-	collection === 'news' ? 'news' : 'articles';
+export const getSectionForCollection = (_collection: PostCollection) =>
+	'articles';
+
+/** Where the list of a kind of post lives. */
+export const getListHref = (_collection: PostCollection) =>
+	'/accomplishments/';
 
 export const getPostHref = (post: Pick<Post, 'collection' | 'id'>) =>
 	`/${getSectionForCollection(post.collection as PostCollection)}/${post.id}/`;

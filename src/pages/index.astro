@@ -1,6 +1,6 @@
 ---
 import FeaturedHero, { type HeroItem } from "../components/gallery/FeaturedHero"
-import NewsEvents from "../components/NewsEvents.astro"
+import RecentAccomplishments from "../components/RecentAccomplishments.astro"
 import BaseLayout from "../layouts/BaseLayout.astro"
 import {
   altFromFilename,
@@ -12,8 +12,7 @@ import {
 } from "../lib/content"
 
 const articles = await getPublishedPosts("articles")
-const news = await getPublishedPosts("news")
-const allPosts = [...articles, ...news].sort(
+const allPosts = [...articles].sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 )
 
@@ -22,7 +21,7 @@ const heroPosts = allPosts.slice(0, 5)
 
 const featured: HeroItem[] = heroPosts.map((post) => ({
   id: `${post.collection}-${post.id}`,
-  tag: post.collection === "news" ? "News" : "Accomplishment",
+  tag: "Accomplishment",
   provinces: getProvinces(post.data),
   date: formatPostDate(post.data.date, "long"),
   title: post.data.title,
@@ -36,7 +35,7 @@ const featured: HeroItem[] = heroPosts.map((post) => ({
 <BaseLayout
   hero
   title="DTI Region 10 Accomplishment Report"
-  description="Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao): news, programs, and results."
+  description="Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao): accomplishments and results."
 >
   {featured.length > 0 ? (
     <section id="top" class="featured-hero relative bg-navy-deep text-mist">
@@ -61,5 +60,5 @@ const featured: HeroItem[] = heroPosts.map((post) => ({
     </section>
   )}
 
-  <NewsEvents />
+  <RecentAccomplishments />
 </BaseLayout>
