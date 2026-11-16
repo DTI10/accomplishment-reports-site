@@ -253,54 +253,50 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
       >
         <div class:list={[wrap, "py-16 sm:py-20"]}>
           <div class="flex flex-wrap items-end justify-between gap-6">
-            <h2 class="display text-[clamp(1.7rem,3vw,2.4rem)] text-navy">
+            <h2 class="display text-[clamp(1.8rem,3.4vw,2.6rem)] text-navy">
               More {sectionLabel.toLowerCase()}
             </h2>
             <a
               href={getListHref(collection)}
-              class="font-semibold text-navy underline decoration-navy/40 underline-offset-[6px] hover:decoration-navy"
+              class="font-semibold text-navy underline decoration-dti-gold decoration-2 underline-offset-[6px] hover:decoration-navy"
             >
               See all {sectionLabel.toLowerCase()}
             </a>
           </div>
-          <ul class="mt-10 grid gap-x-10 gap-y-9 md:grid-cols-2 xl:grid-cols-3">
+          <ul class="mt-12 grid gap-x-10 gap-y-9 md:grid-cols-2 xl:grid-cols-3">
             {more.map((item) => {
               const thumb = item.data.image
-              const itemProvinces = getProvinces(item.data)
+              const place = getProvinces(item.data)[0]
               return (
                 <li>
                   <a
                     href={getPostHref(item)}
-                    class="more-link group grid grid-cols-[7.5rem_1fr] items-center gap-5 sm:grid-cols-[9rem_1fr]"
+                    class="group grid grid-cols-[7.5rem_1fr] items-start gap-5 sm:grid-cols-[9rem_1fr]"
                   >
-                    {thumb ? (
-                      <img
-                        src={thumb}
-                        alt=""
-                        loading="lazy"
-                        class="aspect-[4/3] w-full rounded-[6px] object-cover"
-                      />
-                    ) : (
-                      <span
-                        class="fh-fallback relative block aspect-[4/3] w-full overflow-hidden rounded-[6px]"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span>
-                      <span class="block text-[0.7rem] font-semibold tracking-[0.16em] text-ink/55 uppercase">
-                        Accomplishment
-                        {itemProvinces.length > 0 && (
-                          <span class="text-dti-blue">
-                            {" · "}
-                            {itemProvinces.join(", ")}
-                          </span>
-                        )}
+                    <span class="block rounded-[2px] bg-navy p-[5px]">
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt=""
+                          loading="lazy"
+                          class="block aspect-[4/3] w-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          class="block aspect-[4/3] w-full bg-white bg-[url('/brand/dti-rapid.png')] bg-[length:auto_52%] bg-center bg-no-repeat"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </span>
+                    <span class="min-w-0">
+                      <span class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-ink/60">
+                        <span class="rounded-[3px] border border-navy/25 px-2 py-0.5 text-[0.68rem] font-semibold tracking-[0.14em] text-navy uppercase">
+                          {place ?? "Accomplishment"}
+                        </span>
+                        <span>{formatPostDate(item.data.date, "long")}</span>
                       </span>
-                      <span class="more-title mt-2 block text-lg leading-snug font-semibold tracking-tight text-navy">
+                      <span class="mt-2.5 line-clamp-3 leading-snug font-semibold text-navy decoration-dti-gold decoration-2 underline-offset-4 group-hover:underline group-focus-visible:underline">
                         {item.data.title}
-                      </span>
-                      <span class="mt-1 block text-sm text-ink/60">
-                        {formatPostDate(item.data.date, "long")}
                       </span>
                     </span>
                   </a>

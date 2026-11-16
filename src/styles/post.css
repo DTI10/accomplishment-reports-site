@@ -237,19 +237,4 @@
       margin: 2.5rem 0;
     }
   }
-
-  /* "More stories" cards at the bottom of the page */
-  .more-title {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .more-link:hover .more-title,
-  .more-link:focus-visible .more-title {
-    text-decoration: underline;
-    text-decoration-color: var(--color-navy);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-  }
 }
