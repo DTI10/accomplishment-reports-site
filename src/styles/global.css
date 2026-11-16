@@ -102,11 +102,44 @@
 @view-transition {
   navigation: auto;
 }
+/* The page: the old one stays fully in place while the new one fades in on top of it. Fading both at once
+   dips below full opacity halfway and flashes the white behind; this never does. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
 ::view-transition-old(root) {
-  animation: page-out 0.2s cubic-bezier(0.33, 0, 0.67, 1) both;
+  animation: none;
 }
 ::view-transition-new(root) {
-  animation: page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* The shared photo and title (the home hero or a list card, and the story page, share the same names):
+   one soft ease-out curve, quick to start and settling gently. */
+::view-transition-group(*) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-old(*.story-photo),
+::view-transition-new(*.story-photo) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* the corners sit between the card (6px) and the story photo (10px), so they never snap at the end */
+::view-transition-image-pair(*.story-photo) {
+  border-radius: 8px;
+  overflow: clip;
+}
+/* Text cannot be stretched between two sizes without blurring, so the title swaps early while it moves. */
+::view-transition-old(*.story-title),
+::view-transition-new(*.story-title) {
+  animation-duration: 0.28s;
+  animation-timing-function: ease-out;
+}
+/* the hero's dark gradient has no twin on the story page: it fades out as the photo moves */
+::view-transition-old(*.story-shade) {
+  animation: page-out 0.4s ease-out both;
 }
 ::view-transition-group(site-nav) {
   animation: none;
@@ -119,7 +152,6 @@
 @keyframes page-in {
   from {
     opacity: 0;
-    transform: scale(1.008);
   }
 }
 @media (prefers-reduced-motion: reduce) {

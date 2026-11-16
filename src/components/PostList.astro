@@ -12,6 +12,8 @@ interface Props {
   hideProvince?: boolean
   /** Show the search / filter bar at all. */
   showFilters?: boolean
+  /** Name each card's photo and title for the page transition into the story page. Only on pages where no other element shows the same post (the home hero does). */
+  morph?: boolean
 }
 
 const {
@@ -20,7 +22,8 @@ const {
   emptyMessage = "No stories have been published yet.",
   idPrefix = "post",
   hideProvince = false,
-  showFilters = true
+  showFilters = true,
+  morph = false
 } = Astro.props
 
 // One row per post, with the values the filters and the search use
@@ -126,7 +129,7 @@ const field =
           data-year={row.year}
           data-search={row.search}
         >
-          <PostCard post={row.post} />
+          <PostCard post={row.post} morph={morph} />
         </li>
       ))}
     </ul>
