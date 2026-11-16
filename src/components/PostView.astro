@@ -263,7 +263,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
               See all {sectionLabel.toLowerCase()}
             </a>
           </div>
-          <ul class="mt-10 grid gap-x-10 gap-y-9 md:grid-cols-2 xl:grid-cols-3">
+          <ul class="mt-10 grid gap-x-10 gap-y-9 md:grid-cols-2 lg:grid-cols-3">
             {more.map((item) => {
               const thumb = item.data.image
               const itemProvinces = getProvinces(item.data)
@@ -271,7 +271,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
                 <li>
                   <a
                     href={getPostHref(item)}
-                    class="more-link group grid grid-cols-[7.5rem_1fr] items-center gap-5 sm:grid-cols-[9rem_1fr]"
+                    class="more-link group grid grid-cols-[7.5rem_1fr] items-start gap-5 sm:grid-cols-[8.5rem_1fr]"
                   >
                     {thumb ? (
                       <img
@@ -296,7 +296,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
                           </span>
                         )}
                       </span>
-                      <span class="more-title mt-2 block text-lg leading-snug font-semibold tracking-tight text-navy">
+                      <span class="more-title mt-2 text-lg leading-snug font-semibold tracking-tight text-navy">
                         {item.data.title}
                       </span>
                       <span class="mt-1 block text-sm text-ink/60">
