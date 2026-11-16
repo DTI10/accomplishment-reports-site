@@ -1,16 +1,18 @@
 ---
-import { render } from "astro:content"
 import BaseLayout from "../layouts/BaseLayout.astro"
-import ImageCarousel from "./ImageCarousel.astro"
+import { Badge } from "./ui/badge"
 import {
   formatPostDate,
   getPostHref,
+  altFromFilename,
+  getProvinces,
+  getSummary,
   getPublishedPosts,
-  getRelatedPosts,
   getSectionForCollection,
   type Post,
   type PostCollection
 } from "../lib/content"
+import { photoSide, placePhotos, renderStoryBlocks } from "../lib/storyBody"
 
 interface Props {
   post: Post
@@ -20,377 +22,293 @@ const { post } = Astro.props
 const {
   title,
   date,
-  description,
-  author,
   image,
-  image_alt,
-  gallery,
-  tags,
-  program,
-  event,
-  stats,
-  partners,
-  attachments,
-  contact
+  author,
+  photos,
+  tags
 } = post.data
-const { Content, headings } = await render(post)
+
+// Story text, cleaned of pasted Word/Docs artefacts and split into blocks
+const slugify = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/&[a-z]+;|<[^>]+>/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+const toc: { depth: number; text: string; slug: string }[] = []
+const blocks = renderStoryBlocks(post.body ?? "").map((block) => ({
+  ...block,
+  html: block.html.replace(
+    /<h([23])>([\s\S]*?)<\/h[23]>/,
+    (_match, depth: string, inner: string) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim()
+      const slug = slugify(text)
+      toc.push({ depth: Number(depth), text, slug })
+      return `<h${depth} id="${slug}">${inner}</h${depth}>`
+    }
+  )
+}))
+
+// Extra photos: where each one goes (-1 = top), alternating left / right
+const slots = placePhotos(blocks, photos)
+const placed = new Map<
+  number,
+  { image: string; size: string; side: "left" | "right"; caption?: string; n: number }[]
+>()
+photos.forEach((photo, k) => {
+  const list = placed.get(slots[k]) ?? []
+  list.push({
+    image: photo.image,
+    size: photo.size,
+    side: photoSide(photo.side, k),
+    caption: photo.caption?.trim(),
+    n: k + 2
+  })
+  placed.set(slots[k], list)
+})
 
 const collection = post.collection as PostCollection
 const section = getSectionForCollection(collection)
-const sectionLabel = section === "news" ? "News" : "Articles"
+const sectionLabel = section === "news" ? "News" : "Accomplishments"
+const typeLabel = section === "news" ? "News" : "Accomplishment"
 
-const allPosts = await getPublishedPosts(collection)
-const currentIndex = allPosts.findIndex((item) => item.id === post.id)
-const previous = allPosts[currentIndex + 1]
-const next = allPosts[currentIndex - 1]
-
+const summary = getSummary(post)
+const provinces = getProvinces(post.data)
 const formattedDate = formatPostDate(date, "long")
-const altText = image_alt ?? title
-
-const relatedPosts = await getRelatedPosts(post)
-const hasContact = Boolean(
-  contact?.name || contact?.role || contact?.email || contact?.phone
-)
-
-const formatEventDate = (value: Date) => {
-  const hasTime = value.getHours() !== 0 || value.getMinutes() !== 0
-  return new Intl.DateTimeFormat("en-PH", {
-    dateStyle: "medium",
-    ...(hasTime ? { timeStyle: "short" as const } : {})
-  }).format(value)
-}
+const altText = altFromFilename(image, title)
+const photo = image || undefined
 
 const wordCount = (post.body ?? "").trim().split(/\s+/).filter(Boolean).length
 const readingTime = Math.max(1, Math.ceil(wordCount / 220))
 
-const toc = headings.filter(
-  (heading) => heading.depth === 2 || heading.depth === 3
-)
+// "More" band: the newest other posts of the same kind
+const allPosts = await getPublishedPosts(collection)
+const more = allPosts.filter((p) => p.id !== post.id).slice(0, 3)
+
+const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
 ---
 
-<BaseLayout title={title} description={description ?? title} image={image}>
+<BaseLayout
+  hero
+  title={title}
+  description={summary || title}
+  image={image}
+>
   <article>
-    <header class="border-b border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-bg)] pt-12 pb-10">
-      <div class="mx-auto w-[min(100%-2rem,1200px)] max-w-[820px]">
-        <a
-          class="mb-[1.4rem] inline-block text-[0.86rem] font-bold"
-          href={`/${section}/`}
-        >
-          ← All {sectionLabel.toLowerCase()}
-        </a>
-
-        <div class="flex flex-wrap items-center gap-2 text-[0.82rem] font-semibold tracking-[0.03em] text-[var(--color-muted)] uppercase">
-          <span
-            class:list={[
-              "rounded-full px-[0.6rem] py-[0.2rem] text-[0.68rem] font-extrabold",
-              collection === "news"
-                ? "bg-[var(--color-accent-soft)] text-[#7a5800]"
-                : "bg-[#eaf1fb] text-[var(--color-primary)]"
-            ]}
+    <header class="post-head text-mist">
+      <div
+        class:list={[
+          wrap,
+          "grid items-center gap-10 pt-24 pb-14 sm:pt-32 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:pb-16"
+        ]}
+      >
+        <div>
+          <a
+            href={`/${section}/`}
+            class="inline-flex items-center gap-2 text-sm font-semibold text-mist/75 hover:text-white"
           >
-            {sectionLabel}
-          </span>
-          {program && (
-            <span class="rounded-full border border-[var(--color-border)] px-[0.6rem] py-[0.2rem] text-[0.68rem] font-extrabold text-[var(--color-muted)]">
-              {program}
-            </span>
-          )}
-          <time datetime={date.toISOString()}>{formattedDate}</time>
-          <span aria-hidden="true">·</span>
-          <span>{readingTime} min read</span>
-          {author && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{author}</span>
-            </>
-          )}
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                d="M15 5l-7 7 7 7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"></path>
+            </svg>
+            All {sectionLabel.toLowerCase()}
+          </a>
+
+          <div class="mt-8 flex flex-wrap items-center gap-2">
+            <Badge variant="news">{typeLabel}</Badge>
+            {provinces.map((p) => <Badge variant="outline">{p}</Badge>)}
+          </div>
+
+          <h1
+            class="display mt-5 text-[clamp(1.6rem,2.4vw,2.25rem)] leading-[1.12] tracking-[-0.015em] text-balance text-white"
+          >
+            {title}
+          </h1>
+
+          {
+            tags.length > 0 && (
+              <ul class="mt-6 flex flex-wrap gap-2" aria-label="Tags">
+                {tags.map((tag) => (
+                  <li class="rounded-[3px] border border-mist/20 px-2.5 py-1 text-[0.68rem] font-semibold tracking-[0.14em] text-mist/70 uppercase">
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            )
+          }
         </div>
 
-        <h1 class="mt-[0.7rem] mb-[0.9rem] text-[clamp(2.1rem,4.5vw,3.2rem)] tracking-[-0.025em]">
-          {title}
-        </h1>
-        {description && (
-          <p class="m-0 max-w-2xl text-[1.12rem] text-[var(--color-muted)]">
-            {description}
-          </p>
-        )}
-
-        {event && (
-          <div class="mt-[1.6rem] rounded-[var(--radius-md)] border border-[var(--color-border)] border-l-4 border-l-[var(--color-primary)] bg-[var(--color-surface)] px-[1.4rem] py-[1.2rem]">
-            <p class="mt-0 mb-[0.6rem] text-[0.72rem] font-bold tracking-[0.08em] text-[var(--color-muted)] uppercase">
-              Event details
-            </p>
-            <dl class="m-0 flex flex-wrap gap-x-[2.2rem] gap-y-[0.4rem]">
-              <div class="flex flex-col gap-[0.15rem]">
-                <dt class="text-[0.72rem] font-bold tracking-[0.06em] text-[var(--color-muted)] uppercase">
-                  When
-                </dt>
-                <dd class="m-0 font-semibold">
-                  <time datetime={event.start.toISOString()}>
-                    {formatEventDate(event.start)}
-                  </time>
-                  {event.end && (
-                    <>
-                      {" – "}
-                      <time datetime={event.end.toISOString()}>
-                        {formatEventDate(event.end)}
-                      </time>
-                    </>
-                  )}
-                </dd>
-              </div>
-              {event.venue && (
-                <div class="flex flex-col gap-[0.15rem]">
-                  <dt class="text-[0.72rem] font-bold tracking-[0.06em] text-[var(--color-muted)] uppercase">
-                    Where
-                  </dt>
-                  <dd class="m-0 font-semibold">{event.venue}</dd>
-                </div>
-              )}
-            </dl>
-            {event.registration_url && (
-              <a
-                class="mt-[0.9rem] inline-block text-[0.9rem] font-bold"
-                href={event.registration_url}
-              >
-                Register <span aria-hidden="true">→</span>
-              </a>
-            )}
+        <figure>
+          <div class="photo-notch">
+            {
+              photo ? (
+                <img
+                  src={photo}
+                  alt={altText}
+                  class="block aspect-[4/3] w-full rounded-[10px] object-cover"
+                />
+              ) : (
+                <div
+                  class="fh-fallback relative aspect-[4/3] w-full overflow-hidden rounded-[10px] border border-mist/10"
+                  aria-hidden="true"
+                />
+              )
+            }
+            <div class="notch">
+              <span class="notch-row">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <rect
+                    x="3.5"
+                    y="5"
+                    width="17"
+                    height="15.5"
+                    rx="2"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"></rect>
+                  <path
+                    d="M3.5 10h17M8 3v4M16 3v4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"></path>
+                </svg>
+                <time datetime={date.toISOString().slice(0, 10)}>
+                  {formattedDate}
+                </time>
+              </span>
+              <span class="notch-row">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path
+                    d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"></path>
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2.3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"></circle>
+                </svg>
+                {provinces.length > 0 ? provinces.join(", ") : "DTI Region 10"}
+              </span>
+            </div>
           </div>
-        )}
-
-        {tags.length > 0 && (
-          <ul
-            class="mt-[1.4rem] flex list-none flex-wrap gap-[0.45rem] p-0"
-            aria-label="Tags"
-          >
-            {tags.map((tag) => (
-              <li class="rounded-full bg-[var(--color-accent-soft)] px-[0.7rem] py-1 text-[0.72rem] font-bold tracking-[0.04em] text-[#7a5800] uppercase">
-                {tag}
-              </li>
-            ))}
-          </ul>
-        )}
+        </figure>
       </div>
     </header>
 
-    {image && (
-      <div class="mx-auto mt-8 w-[min(100%-2rem,1200px)]">
-        <img
-          class="max-h-[520px] w-full rounded-[var(--radius-lg)] object-cover shadow-[var(--shadow-md)]"
-          src={image}
-          alt={altText}
-        />
-      </div>
-    )}
+    <div class:list={[wrap, "pt-14 sm:pt-16"]}>
+      <div class="grid gap-12">
+        <div class="min-w-0">
+          <div class="post-body">
+            {
+              (placed.get(-1) ?? []).map((ph) => (
+                <figure class:list={["post-photo", `size-${ph.size}`, `side-${ph.side}`]}>
+                  <img src={ph.image} alt={altFromFilename(ph.image, title)} loading="lazy" />
+                  {ph.caption && <figcaption>{ph.caption}</figcaption>}
+                </figure>
+              ))
+            }
+            {
+              blocks.map((block, i) => (
+                <>
+                  <Fragment set:html={block.html} />
+                  {(placed.get(i) ?? []).map((ph) => (
+                    <figure class:list={["post-photo", `size-${ph.size}`, `side-${ph.side}`]}>
+                      <img src={ph.image} alt={altFromFilename(ph.image, title)} loading="lazy" />
+                      {ph.caption && <figcaption>{ph.caption}</figcaption>}
+                    </figure>
+                  ))}
+                </>
+              ))
+            }
+          </div>
 
-    <div class="mx-auto grid w-[min(100%-2rem,1200px)] gap-8 pt-12 min-[901px]:grid-cols-[minmax(0,1fr)_240px] min-[901px]:gap-14">
-      <div class="min-w-0">
-        <div class="prose">
-          <Content />
+          <p class="mt-10 clear-both border-t border-navy/15 pt-5 text-sm text-ink/60">
+            {author && (
+              <>
+                By <span class="font-semibold text-navy">{author}</span>
+                <span aria-hidden="true"> · </span>
+              </>
+            )}
+            {readingTime} min read
+          </p>
         </div>
 
-        {stats.length > 0 && (
-          <section
-            class="mt-10 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[#f4f8fd] p-6"
-            aria-labelledby="stats-heading"
-          >
-            <h2 class="mt-0 mb-4 text-[1.3rem]" id="stats-heading">
-              Key figures
-            </h2>
-            <dl class="m-0 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[1.2rem]">
-              {stats.map((stat) => (
-                <div>
-                  <dt class="text-[0.78rem] font-bold tracking-[0.05em] text-[var(--color-muted)] uppercase">
-                    {stat.label}
-                  </dt>
-                  <dd class="mt-[0.3rem] mb-0 text-[1.8rem] leading-none font-extrabold text-[var(--color-primary)]">
-                    {stat.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        )}
-
-        {gallery.length > 0 && (
-          <section class="mt-12" aria-labelledby="gallery-heading">
-            <h2 class="mb-4 text-[1.3rem]" id="gallery-heading">
-              Gallery
-            </h2>
-            <ImageCarousel
-              items={gallery}
-              label={`Photo gallery for ${title}`}
-            />
-          </section>
-        )}
-
-        {(partners.length > 0 || attachments.length > 0 || hasContact) && (
-          <section
-            class="mt-12 border-t border-[var(--color-border)] pt-8 [&>div+div]:mt-[1.4rem]"
-            aria-labelledby="info-heading"
-          >
-            <h2 class="mt-0 mb-4 text-[1.3rem]" id="info-heading">
-              More information
-            </h2>
-
-            {partners.length > 0 && (
-              <div>
-                <h3 class="mt-0 mb-[0.4rem] text-[0.78rem] tracking-[0.07em] text-[var(--color-muted)] uppercase">
-                  Partners
-                </h3>
-                <ul class="m-0 flex list-none flex-wrap gap-[0.45rem] p-0">
-                  {partners.map((partner) => (
-                    <li class="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-[0.7rem] py-1 text-[0.85rem]">
-                      {partner}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {attachments.length > 0 && (
-              <div>
-                <h3 class="mt-0 mb-[0.4rem] text-[0.78rem] tracking-[0.07em] text-[var(--color-muted)] uppercase">
-                  Downloads
-                </h3>
-                <ul class="m-0 flex list-none flex-col gap-[0.3rem] p-0">
-                  {attachments.map((attachment) => (
-                    <li>
-                      <a href={attachment.file} download>
-                        {attachment.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {hasContact && (
-              <div>
-                <h3 class="mt-0 mb-[0.4rem] text-[0.78rem] tracking-[0.07em] text-[var(--color-muted)] uppercase">
-                  Contact
-                </h3>
-                {contact?.name && (
-                  <p class="m-0">
-                    {contact.name}
-                    {contact.role && <span>, {contact.role}</span>}
-                  </p>
-                )}
-                {!contact?.name && contact?.role && (
-                  <p class="m-0">{contact.role}</p>
-                )}
-                {(contact?.email || contact?.phone) && (
-                  <p class="m-0">
-                    {contact?.email && (
-                      <a href={`mailto:${contact.email}`}>{contact.email}</a>
-                    )}
-                    {contact?.email && contact?.phone && (
-                      <span aria-hidden="true"> · </span>
-                    )}
-                    {contact?.phone && (
-                      <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>
-                        {contact.phone}
-                      </a>
-                    )}
-                  </p>
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
-        {relatedPosts.length > 0 && (
-          <aside
-            class="mt-12 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-[1.4rem]"
-            aria-labelledby="related-heading"
-          >
-            <h2 class="mt-0 mb-[0.8rem] text-[1.1rem]" id="related-heading">
-              Read next
-            </h2>
-            <ul class="m-0 grid list-none gap-[0.9rem] p-0">
-              {relatedPosts.map((relatedPost) => (
-                <li>
-                  <a href={getPostHref(relatedPost)}>
-                    {relatedPost.data.title}
-                  </a>
-                  {relatedPost.data.description && (
-                    <p class="mt-[0.2rem] mb-0 text-[0.88rem] text-[var(--color-muted)]">
-                      {relatedPost.data.description}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </aside>
-        )}
-
-        <nav
-          class="mt-14 grid grid-cols-2 gap-4 border-t border-[var(--color-border)] pt-8 max-[560px]:grid-cols-1"
-          aria-label={`More ${sectionLabel.toLowerCase()}`}
-        >
-          {previous ? (
-            <a
-              class="flex flex-col gap-[0.3rem] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-[1.2rem] py-4 hover:border-[#b9c9e5] hover:no-underline"
-              href={getPostHref(previous)}
-            >
-              <span class="text-[0.72rem] font-bold tracking-[0.06em] text-[var(--color-muted)] uppercase">
-                Previous
-              </span>
-              <strong class="text-[0.92rem] text-[var(--color-text)]">
-                {previous.data.title}
-              </strong>
-            </a>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <a
-              class="flex flex-col gap-[0.3rem] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-[1.2rem] py-4 text-right hover:border-[#b9c9e5] hover:no-underline max-[560px]:text-left"
-              href={getPostHref(next)}
-            >
-              <span class="text-[0.72rem] font-bold tracking-[0.06em] text-[var(--color-muted)] uppercase">
-                Next
-              </span>
-              <strong class="text-[0.92rem] text-[var(--color-text)]">
-                {next.data.title}
-              </strong>
-            </a>
-          ) : (
-            <span />
-          )}
-        </nav>
       </div>
-
-      {toc.length > 1 && (
-        <aside
-          class="static order-first rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-[1.3rem] py-[1.2rem] text-[0.85rem] min-[901px]:sticky min-[901px]:top-[100px] min-[901px]:order-none min-[901px]:self-start"
-          aria-labelledby="toc-heading"
-        >
-          <h2
-            class="mt-0 mb-[0.7rem] text-[0.75rem] tracking-[0.08em] text-[var(--color-muted)] uppercase"
-            id="toc-heading"
-          >
-            On this page
-          </h2>
-          <ol class="m-0 list-none p-0 [&>li+li]:mt-2">
-            {toc.map((heading) => (
-              <li
-                class:list={{
-                  "pl-[0.9rem] text-[0.8rem]": heading.depth === 3
-                }}
-              >
-                <a
-                  class="text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:no-underline"
-                  href={`#${heading.slug}`}
-                >
-                  {heading.text}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </aside>
-      )}
     </div>
   </article>
+
+  {
+    more.length > 0 && (
+      <nav
+        class="mt-20 bg-mist-deep/60 sm:mt-28"
+        aria-label={`More ${sectionLabel.toLowerCase()}`}
+      >
+        <div class:list={[wrap, "py-16 sm:py-20"]}>
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <h2 class="display text-[clamp(1.7rem,3vw,2.4rem)] text-navy">
+              More {sectionLabel.toLowerCase()}
+            </h2>
+            <a
+              href={`/${section}/`}
+              class="font-semibold text-navy underline decoration-navy/40 underline-offset-[6px] hover:decoration-navy"
+            >
+              See all {sectionLabel.toLowerCase()}
+            </a>
+          </div>
+          <ul class="mt-10 grid gap-x-10 gap-y-9 md:grid-cols-2 xl:grid-cols-3">
+            {more.map((item) => {
+              const thumb = item.data.image
+              const itemProvinces = getProvinces(item.data)
+              return (
+                <li>
+                  <a
+                    href={getPostHref(item)}
+                    class="more-link group grid grid-cols-[7.5rem_1fr] items-center gap-5 sm:grid-cols-[9rem_1fr]"
+                  >
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt=""
+                        loading="lazy"
+                        class="aspect-[4/3] w-full rounded-[6px] object-cover"
+                      />
+                    ) : (
+                      <span
+                        class="fh-fallback relative block aspect-[4/3] w-full overflow-hidden rounded-[6px]"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span>
+                      <span class="block text-[0.7rem] font-semibold tracking-[0.16em] text-ink/55 uppercase">
+                        {item.collection === "news" ? "News" : "Accomplishment"}
+                        {itemProvinces.length > 0 && (
+                          <span class="text-dti-blue">
+                            {" · "}
+                            {itemProvinces.join(", ")}
+                          </span>
+                        )}
+                      </span>
+                      <span class="more-title mt-2 block text-lg leading-snug font-semibold tracking-tight text-navy">
+                        {item.data.title}
+                      </span>
+                      <span class="mt-1 block text-sm text-ink/60">
+                        {formatPostDate(item.data.date, "long")}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </nav>
+    )
+  }
 </BaseLayout>
