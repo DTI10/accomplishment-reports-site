@@ -32,11 +32,6 @@ const articles = defineCollection({
 	schema: postSchema,
 });
 
-const news = defineCollection({
-	loader: glob({ pattern: '**/*.md', base: './content/news' }),
-	schema: postSchema,
-});
-
 const settings = defineCollection({
 	loader: glob({ pattern: '*.yml', base: './content/settings' }),
 	schema: z.object({
@@ -44,4 +39,12 @@ const settings = defineCollection({
 	}),
 });
 
-export const collections = { articles, news, settings };
+// Banner title for the Province / Office pages (content/offices/<slug>.md). Optional.
+const offices = defineCollection({
+	loader: glob({ pattern: '*.md', base: './content/offices' }),
+	schema: z.object({
+		name: z.string().optional(),
+	}),
+});
+
+export const collections = { articles, settings, offices };

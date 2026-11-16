@@ -6,12 +6,21 @@ interface Props {
   posts: Post[]
   pageSize?: number
   emptyMessage?: string
+  /** Prefix for the field ids, so several lists can sit on one page. */
+  idPrefix?: string
+  /** Hide the province dropdown (office pages are already one province). */
+  hideProvince?: boolean
+  /** Show the search / filter bar at all. */
+  showFilters?: boolean
 }
 
 const {
   posts,
   pageSize = 6,
-  emptyMessage = "No stories have been published yet."
+  emptyMessage = "No stories have been published yet.",
+  idPrefix = "post",
+  hideProvince = false,
+  showFilters = true
 } = Astro.props
 
 // One row per post, with the values the filters and the search use
@@ -26,7 +35,7 @@ const rows = posts.map((post) => {
       getSummary(post),
       province,
       ...post.data.tags,
-      post.collection === "news" ? "news" : "accomplishment"
+      "accomplishment"
     ]
       .join(" ")
       .toLowerCase()
@@ -44,15 +53,18 @@ const field =
 ---
 
 <div data-posts data-page={pageSize}>
-  {posts.length > 0 && (
+  {posts.length > 0 && showFilters && (
     <form
-      class="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_16rem_9rem_auto]"
+      class:list={[
+        "mb-12 grid gap-3 sm:grid-cols-2",
+        hideProvince ? "lg:grid-cols-[1fr_9rem_auto]" : "lg:grid-cols-[1fr_16rem_9rem_auto]"
+      ]}
       role="search"
       aria-label="Filter stories"
       data-form
     >
       <div class="relative sm:col-span-2 lg:col-span-1">
-        <label class="sr-only" for="post-search">Search</label>
+        <label class="sr-only" for={`${idPrefix}-search`}>Search</label>
         <svg
           viewBox="0 0 24 24"
           width="18"
@@ -64,7 +76,7 @@ const field =
           <path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
         <input
-          id="post-search"
+          id={`${idPrefix}-search`}
           type="search"
           data-q
           placeholder="Search by title, topic or place"
@@ -73,17 +85,19 @@ const field =
         />
       </div>
 
-      <div>
-        <label class="sr-only" for="post-province">Province or office</label>
-        <select id="post-province" data-filter-province class={field}>
-          <option value="">All provinces / offices</option>
-          {provinces.map((name) => <option value={name}>{name}</option>)}
-        </select>
-      </div>
+      {!hideProvince && (
+        <div>
+          <label class="sr-only" for={`${idPrefix}-province`}>Province or office</label>
+          <select id={`${idPrefix}-province`} data-filter-province class={field}>
+            <option value="">All provinces / offices</option>
+            {provinces.map((name) => <option value={name}>{name}</option>)}
+          </select>
+        </div>
+      )}
 
       <div>
-        <label class="sr-only" for="post-year">Year</label>
-        <select id="post-year" data-filter-year class={field}>
+        <label class="sr-only" for={`${idPrefix}-year`}>Year</label>
+        <select id={`${idPrefix}-year`} data-filter-year class={field}>
           <option value="">All years</option>
           {years.map((year) => <option value={year}>{year}</option>)}
         </select>
@@ -149,7 +163,8 @@ const field =
     const more = root.querySelector<HTMLButtonElement>("[data-more]")
     const status = root.querySelector<HTMLElement>("[data-status]")
     const empty = root.querySelector<HTMLElement>("[data-empty]")
-    if (!more || !status || !empty) return
+    // nothing to filter when there are no posts at all (the page shows its own empty message)
+    if (!more || !status || !empty || items.length === 0) return
 
     let limit = page
 

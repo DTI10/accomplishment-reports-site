@@ -1,15 +1,15 @@
 # DTI Accomplishments
 
-An Astro site that renders articles and news authored through Sveltia CMS.
+An Astro site that renders accomplishments authored through Sveltia CMS.
 
 ## Content types
 
-| Type     | Folder            | URL                |
-| :------- | :---------------- | :----------------- |
-| Articles | `content/articles` | `/articles/<slug>/` |
-| News     | `content/news`     | `/news/<slug>/`     |
+| Type            | Folder             | URL                          |
+| :-------------- | :----------------- | :--------------------------- |
+| Accomplishments | `content/articles` | `/articles/<slug>/`          |
+| Offices (banner title) | `content/offices` | `/accomplishments/<office>/` |
 
-Both content types support the same frontmatter:
+Accomplishments support this frontmatter:
 
 | Field         | Required | Description                                      |
 | :------------ | :------- | :----------------------------------------------- |
@@ -30,7 +30,7 @@ Sveltia CMS is Git-based, so it uses GitHub accounts rather than its own user
 database. Roles are enforced by GitHub teams and branch protection:
 
 - **Editors** — members of the `editors` GitHub team with repository **Write**
-  access. They can create and edit articles/news, save them as pull requests,
+  access. They can create and edit accomplishments, save them as pull requests,
   and mark them as ready. They cannot merge to `master`, but GitHub Write
   access does allow them to close any PR and delete its branch; see
   [Pull request deletion and recovery](#pull-request-deletion-and-recovery).
@@ -54,7 +54,7 @@ handle if it differs.
 The CMS uses the Editorial Workflow (`publish_mode` in
 `public/admin/config.yml`):
 
-1. An editor saves an article or news item. Sveltia opens a pull request.
+1. An editor saves an accomplishment. Sveltia opens a pull request.
 2. The editor marks it **Ready**.
 3. An admin reviews and merges the pull request, which publishes the post.
 
@@ -101,12 +101,12 @@ auto_publish: false
 ```
 
 When enabled, `.github/workflows/auto-publish-posts.yml` automatically
-approves and merges article and news pull requests that:
+approves and merges accomplishment pull requests that:
 
 - are marked ready (`sveltia-cms/pending_publish`),
 - were opened by a user with editor **Write** access (admins use the normal
   review flow),
-- only change files under `content/articles/`, `content/news/`, or
+- only change files under `content/articles/` or
   `public/media/`.
 
 Settings and code changes are never auto-published.
@@ -117,7 +117,7 @@ Settings and code changes are never auto-published.
 2. Push the workflow changes to `master` first, so GitHub registers the
    `workflow_dispatch` trigger.
 3. Either:
-   - create a throwaway article or news item from an **editor** account, save
+   - create a throwaway accomplishment from an **editor** account, save
      it, and mark it **Ready**; or
    - open **Actions → Auto-publish editor posts → Run workflow** and enter the
      number of an open, ready PR.
@@ -144,8 +144,8 @@ repository. Without the secret, the workflow exits without merging.
 ## Components
 
 - `Header.astro`, `Footer.astro` — site chrome.
-- `PostCard.astro` — article/news card with type badge.
-- `PostArchive.astro` — shared archive page for `/articles` and `/news`.
+- `PostCard.astro` — accomplishment card with date stamp.
+- `PostArchive.astro` — shared list page for `/accomplishments`.
 - `PostView.astro` — shared post page with Markdown, gallery, TOC, and prev/next.
 - `ImageCarousel.astro` — accessible image carousel with dots, arrows, and swipe.
 - `BaseLayout.astro` — HTML shell, metadata, and global styles.

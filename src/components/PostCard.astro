@@ -26,7 +26,7 @@ const summary = getSummary(post)
 
 const href = getPostHref(post)
 const image = post.data.image || undefined
-const type = post.collection === "news" ? "News" : "Accomplishment"
+const type = "Accomplishment"
 const provinces = getProvinces(post.data)
 const iso = date.toISOString().slice(0, 10)
 const day = date.getUTCDate()

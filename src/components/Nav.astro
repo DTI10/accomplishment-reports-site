@@ -30,9 +30,49 @@ const NATIONAL = "https://www.dti.gov.ph"
     <!-- Wide screens: links in the bar, with dropdowns -->
     <ul class="hidden items-center gap-1 whitespace-nowrap text-[0.92rem] font-medium text-navy/85 xl:flex">
       {navItems.map((item) => (
-        <li class:list={["relative", { group: item.children }]}>
+        <li
+          class:list={[
+            "relative",
+            {
+              group: item.children,
+              "flex items-center": item.children && item.href !== "#"
+            }
+          ]}
+        >
           {item.children ? (
             <>
+              {item.href !== "#" ? (
+                <>
+                  <a
+                    href={item.href}
+                    class="rounded px-3 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
+                  >
+                    {item.label}
+                  </a>
+                  <button
+                    type="button"
+                    class="-ml-2 rounded px-2 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label={`${item.label} menu`}
+                    data-drop
+                  >
+                    <svg
+                  viewBox="0 0 12 8"
+                  width="10"
+                  height="7"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 1.5l5 5 5-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                  />
+                </svg>
+                  </button>
+                </>
+              ) : (
               <button
                 type="button"
                 class="flex items-center gap-1 rounded px-3 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
@@ -55,6 +95,7 @@ const NATIONAL = "https://www.dti.gov.ph"
                   />
                 </svg>
               </button>
+              )}
               <ul
                 class="pointer-events-none invisible absolute top-full left-0 z-10 mt-[0.85rem] min-w-60 translate-y-[-0.4rem] rounded-[10px] bg-white p-[0.4rem] opacity-0 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_18px_40px_-14px_rgb(6_22_51/0.5)] transition-[opacity,transform,visibility] duration-200 ease-[var(--ease-out-quint)] before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 data-[open]:pointer-events-auto data-[open]:visible data-[open]:translate-y-0 data-[open]:opacity-100"
                 data-drop-panel

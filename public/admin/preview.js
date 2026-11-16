@@ -1,5 +1,5 @@
 /*
- * Admin preview + save cleanup for Accomplishments and News (Sveltia CMS).
+ * Admin preview + save cleanup for Accomplishments (Sveltia CMS).
  *
  * - The preview is laid out like the real page: same fonts, sizes, spacing, tags and photo
  *   placement (preview.css), so editors see what will be published.
@@ -162,7 +162,6 @@
 
 	CMS.registerPreviewStyle('/admin/preview.css');
 	CMS.registerPreviewTemplate('articles', template('Accomplishment'));
-	CMS.registerPreviewTemplate('news', template('News'));
 
 	// Clean pasted text before saving, so the published page matches the preview
 	CMS.registerEventListener({

@@ -1,3 +1,5 @@
+import { OFFICES, officeHref } from './offices';
+
 export interface NavItem {
 	label: string;
 	href: string;
@@ -10,15 +12,12 @@ export interface NavItem {
 export const navItems: NavItem[] = [
 	{ label: 'Home', href: '/' },
 	{
-		label: 'Stories & Press Release',
-		href: '#',
-		children: [
-			{ label: 'Regional Office', href: '#' },
-			{ label: 'Bukidnon', href: '#' },
-			{ label: 'Camiguin', href: '#' },
-			{ label: 'Lanao del Norte', href: '#' },
-			{ label: 'Misamis Oriental', href: '#' },
-		],
+		label: 'Accomplishments',
+		href: '/accomplishments/',
+		children: OFFICES.map((office) => ({
+			label: office.province,
+			href: officeHref(office.slug),
+		})),
 	},
 	{
 		label: 'Programs',
@@ -39,6 +38,5 @@ export const navItems: NavItem[] = [
 			},
 		],
 	},
-	{ label: 'Accomplishments', href: '/articles/' },
 	{ label: 'About', href: '#' },
 ];

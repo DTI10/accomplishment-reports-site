@@ -5,6 +5,7 @@ import {
   formatPostDate,
   getPostHref,
   altFromFilename,
+  getListHref,
   getProvinces,
   getSummary,
   getPublishedPosts,
@@ -69,8 +70,8 @@ photos.forEach((photo, k) => {
 
 const collection = post.collection as PostCollection
 const section = getSectionForCollection(collection)
-const sectionLabel = section === "news" ? "News" : "Accomplishments"
-const typeLabel = section === "news" ? "News" : "Accomplishment"
+const sectionLabel = "Accomplishments"
+const typeLabel = "Accomplishment"
 
 const summary = getSummary(post)
 const provinces = getProvinces(post.data)
@@ -104,7 +105,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
       >
         <div>
           <a
-            href={`/${section}/`}
+            href={getListHref(collection)}
             class="inline-flex items-center gap-2 text-sm font-semibold text-mist/75 hover:text-white"
           >
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -256,7 +257,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
               More {sectionLabel.toLowerCase()}
             </h2>
             <a
-              href={`/${section}/`}
+              href={getListHref(collection)}
               class="font-semibold text-navy underline decoration-navy/40 underline-offset-[6px] hover:decoration-navy"
             >
               See all {sectionLabel.toLowerCase()}
@@ -287,7 +288,7 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
                     )}
                     <span>
                       <span class="block text-[0.7rem] font-semibold tracking-[0.16em] text-ink/55 uppercase">
-                        {item.collection === "news" ? "News" : "Accomplishment"}
+                        Accomplishment
                         {itemProvinces.length > 0 && (
                           <span class="text-dti-blue">
                             {" · "}
