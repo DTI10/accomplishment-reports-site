@@ -6,7 +6,7 @@ image: /media/lanao1.webp
 photos:
   - image: /media/lanao2.webp
     caption: ''
-    size: large
+    size: medium
     side: auto
     after: null
 author: Fhel Jhon Feliciano
@@ -17,11 +17,11 @@ The richness of provincial culture, artistry, and homegrown talent has officiall
 
 Running from **November 14 to 18, 2026**, at **Concourse B, One Ayala Mall, Makati City**, the exhibition serves as a dynamic platform to spotlight local creative industries, unique artisanal products, and the compelling stories behind every creator.
 
-### A Showcase of Heritage and Innovation
+**A Showcase of Heritage and Innovation**
 
 Designed to celebrate local identity and pride, the event brings together a curated selection of products and artistic expressions that define the vibrant spirit of Northern Mindanao. From traditional crafts to modern local innovations, the exhibit highlights the immense potential and passion driving the region's creative sector.
 
-### Event Details
+**Event Detail**
 
 - **Dates:** November 14–18, 2026
 - **Venue:** Concourse B, One Ayala Mall, Makati City
