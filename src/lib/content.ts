@@ -9,6 +9,19 @@ export const getPublishedPosts = async (collection: PostCollection) => {
 	return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 };
 
+/** Posts explicitly linked through the CMS "Related" field, in the order chosen. */
+export const getRelatedPosts = async (post: Post): Promise<Post[]> => {
+	const ids = post.data.related;
+	if (!ids || ids.length === 0) return [];
+
+	const collection = post.collection as PostCollection;
+	const posts = await getCollection(collection);
+
+	return ids
+		.map((id) => posts.find((candidate) => candidate.id === id))
+		.filter((candidate): candidate is Post => Boolean(candidate));
+};
+
 export const getSectionForCollection = (collection: PostCollection) =>
 	collection === 'news' ? 'news' : 'articles';
 

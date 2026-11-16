@@ -1,48 +1,67 @@
 ---
-import FeaturedHero, { type HeroItem } from '../components/gallery/FeaturedHero';
-import NewsEvents from '../components/NewsEvents.astro';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { formatPostDate, getPostHref, getProvinces, getPublishedPosts } from '../lib/content';
+import FeaturedHero, { type HeroItem } from "../components/gallery/FeaturedHero"
+import NewsEvents from "../components/NewsEvents.astro"
+import BaseLayout from "../layouts/BaseLayout.astro"
+import {
+  formatPostDate,
+  getPostHref,
+  getProvinces,
+  getPublishedPosts
+} from "../lib/content"
 
-const articles = await getPublishedPosts('articles');
-const news = await getPublishedPosts('news');
-const all = [...articles, ...news].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const articles = await getPublishedPosts("articles")
+const news = await getPublishedPosts("news")
+const allPosts = [...articles, ...news].sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+)
 
-const featured: HeroItem[] = all.slice(0, 5).map((post) => ({
-	id: `${post.collection}-${post.id}`,
-	tag: post.collection === 'news' ? 'News' : 'Article',
-	provinces: getProvinces(post.data),
-	date: formatPostDate(post.data.date, 'long'),
-	title: post.data.title,
-	summary: post.data.description ?? '',
-	href: getPostHref(post),
-	alt: post.data.title,
-	src: post.data.image || post.data.gallery[0]?.image || undefined,
-}));
+// Pinned stories lead the hero; everything else fills the remaining slots by date.
+const heroPosts = [
+  ...allPosts.filter((post) => post.data.featured),
+  ...allPosts.filter((post) => !post.data.featured)
+].slice(0, 5)
+
+const featured: HeroItem[] = heroPosts.map((post) => ({
+  id: `${post.collection}-${post.id}`,
+  tag: post.collection === "news" ? "News" : "Article",
+  provinces: getProvinces(post.data),
+  date: formatPostDate(post.data.date, "long"),
+  title: post.data.title,
+  summary: post.data.description ?? "",
+  href: getPostHref(post),
+  alt: post.data.image_alt ?? post.data.title,
+  src: post.data.image || post.data.gallery[0]?.image || undefined
+}))
 ---
 
 <BaseLayout
-	hero
-	title="DTI Region 10 Accomplishment Report"
-	description="Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao): news, programs, and results."
+  hero
+  title="DTI Region 10 Accomplishment Report"
+  description="Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao): news, programs, and results."
 >
-	{
-		featured.length > 0 ? (
-			<section id="top" class="featured-hero relative bg-navy-deep text-mist">
-				<h2 class="sr-only">Featured stories</h2>
-				<FeaturedHero client:load items={featured} />
-			</section>
-		) : (
-			<section id="top" class="relative isolate flex min-h-[80svh] items-end bg-navy text-mist">
-				<div class="shell pb-20 pt-40">
-					<h1 class="display text-[clamp(2.6rem,8vw,6rem)]">
-						DTI Region 10
-						<span class="block text-[0.5em] font-semibold text-mist/85" style="font-stretch:100%">Accomplishment Report</span>
-					</h1>
-				</div>
-			</section>
-		)
-	}
+  {featured.length > 0 ? (
+    <section id="top" class="featured-hero relative bg-navy-deep text-mist">
+      <h2 class="sr-only">Featured stories</h2>
+      <FeaturedHero client:load items={featured} />
+    </section>
+  ) : (
+    <section
+      id="top"
+      class="relative isolate flex min-h-[80svh] items-end bg-navy text-mist"
+    >
+      <div class="shell pb-20 pt-40">
+        <h1 class="display text-[clamp(2.6rem,8vw,6rem)]">
+          DTI Region 10
+          <span
+            class="block text-[0.5em] font-semibold text-mist/85"
+            style="font-stretch:100%"
+          >
+            Accomplishment Report
+          </span>
+        </h1>
+      </div>
+    </section>
+  )}
 
-	<NewsEvents />
+  <NewsEvents />
 </BaseLayout>
