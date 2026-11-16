@@ -40,7 +40,6 @@ contact:
   phone: '+639928375859'
 related:
   - test-article-from-editor
-  - test-article
 ---
 
 # Big hello
