@@ -5,59 +5,26 @@ import { z } from 'astro/zod';
 const postSchema = z.object({
 	title: z.string(),
 	date: z.coerce.date(),
-	description: z.string().optional(),
-	author: z.string().optional(),
 	image: z.string().optional(),
-	gallery: z
+	author: z.string().optional(),
+	photos: z
 		.array(
 			z.object({
 				image: z.string(),
-				caption: z.string().optional(),
+							size: z.enum(['small', 'medium', 'large', 'full']).default('medium'),
+				side: z.enum(['auto', 'left', 'right']).default('auto'),
+				after: z.number().int().min(0).nullish(),
 			}),
 		)
+		.max(4)
 		.optional()
 		.default([]),
-	province: z.array(z.string()).optional().default([]),
+	// One province/office. Older posts may still hold a list: take the first one.
+	province: z
+		.union([z.string(), z.array(z.string())])
+		.optional()
+		.transform((value) => (Array.isArray(value) ? value[0] : value)),
 	tags: z.array(z.string()).optional().default([]),
-	program: z.string().optional(),
-	image_alt: z.string().optional(),
-	featured: z.boolean().optional().default(false),
-	event: z
-		.object({
-			start: z.coerce.date(),
-			end: z.coerce.date().optional(),
-			venue: z.string().optional(),
-			registration_url: z.string().optional(),
-		})
-		.optional(),
-	stats: z
-		.array(
-			z.object({
-				label: z.string(),
-				value: z.string(),
-			}),
-		)
-		.optional()
-		.default([]),
-	partners: z.array(z.string()).optional().default([]),
-	attachments: z
-		.array(
-			z.object({
-				title: z.string(),
-				file: z.string(),
-			}),
-		)
-		.optional()
-		.default([]),
-	contact: z
-		.object({
-			name: z.string().optional(),
-			role: z.string().optional(),
-			email: z.string().optional(),
-			phone: z.string().optional(),
-		})
-		.optional(),
-	related: z.array(z.string()).optional().default([]),
 });
 
 const articles = defineCollection({

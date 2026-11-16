@@ -1,3 +1,4 @@
+import { firstParagraph } from './storyBody';
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type PostCollection = 'articles' | 'news';
@@ -7,19 +8,6 @@ export const getPublishedPosts = async (collection: PostCollection) => {
 	const posts = await getCollection(collection);
 
 	return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-};
-
-/** Posts explicitly linked through the CMS "Related" field, in the order chosen. */
-export const getRelatedPosts = async (post: Post): Promise<Post[]> => {
-	const ids = post.data.related;
-	if (!ids || ids.length === 0) return [];
-
-	const collection = post.collection as PostCollection;
-	const posts = await getCollection(collection);
-
-	return ids
-		.map((id) => posts.find((candidate) => candidate.id === id))
-		.filter((candidate): candidate is Post => Boolean(candidate));
 };
 
 export const getSectionForCollection = (collection: PostCollection) =>
@@ -33,6 +21,7 @@ export const formatPostDate = (date: Date, style: 'short' | 'long' = 'short') =>
 		year: 'numeric',
 		month: style === 'long' ? 'long' : 'short',
 		day: 'numeric',
+		timeZone: 'UTC',
 	}).format(date);
 
 /** DTI Region 10 offices/provinces. A post tagged with one of these shows it as a location badge. */
@@ -46,7 +35,27 @@ export const PROVINCES = [
 ] as const;
 
 /** Provinces for a post: the Province field, plus any tag that names a province. */
-export const getProvinces = (data: { province?: string[]; tags?: string[] }) => {
-	const names = [...(data.province ?? []), ...(data.tags ?? [])].map((n) => n.trim().toLowerCase());
+export const getProvinces = (data: { province?: string | string[]; tags?: string[] }) => {
+	const names = [...[data.province ?? []].flat(), ...(data.tags ?? [])].map((n) => n.trim().toLowerCase());
 	return PROVINCES.filter((p) => names.includes(p.toLowerCase()));
 };
+
+/** Alt text taken from the image's file name ("/media/banner-site_2.webp" -> "banner site 2"). */
+export const altFromFilename = (path: string | undefined, fallback: string) => {
+	if (!path) return fallback;
+	let file = path.split('/').pop() ?? '';
+	try {
+		file = decodeURIComponent(file);
+	} catch {
+		/* keep the raw name */
+	}
+	const name = file
+		.replace(/\.[^.]+$/, '')
+		.replace(/[-_]+/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return name || fallback;
+};
+
+/** Short summary for cards, the hero and link previews: the first paragraph of the text. */
+export const getSummary = (post: Post, max = 160) => firstParagraph(post.body ?? '', max);

@@ -92,7 +92,7 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 									onMouseLeave={() => setPaused(false)}
 								>
 									<div className="flex flex-wrap items-center gap-2">
-										<Badge variant={item.tag === 'Article' ? 'story' : 'news'}>{item.tag}</Badge>
+										<Badge variant={item.tag === 'Accomplishment' ? 'story' : 'news'}>{item.tag}</Badge>
 										{item.provinces?.map((p) => (
 											<Badge key={p} variant="outline">
 												{p}

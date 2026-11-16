@@ -1,6 +1,7 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro"
 import type { Post } from "../lib/content"
-import PostCard from "./PostCard.astro"
+import PostList from "./PostList.astro"
 
 interface Props {
   posts: Post[]
@@ -18,47 +19,24 @@ const {
   emptyMessage = "No posts have been published yet."
 } = Astro.props
 
-const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort()
 ---
 
-<section class="border-b border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-bg)] pt-14 pb-8">
-  <div class="mx-auto w-[min(100%-2rem,1200px)]">
-    <p class="mb-3 inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.14em] text-dti-red uppercase before:h-0.5 before:w-6 before:bg-current before:content-['']">
-      {eyebrow}
-    </p>
-    <h1 class="mb-2 text-[clamp(2.2rem,4vw,3rem)] leading-tight tracking-[-0.02em]">
-      {title}
-    </h1>
-    <p class="m-0 text-[var(--color-muted)]">{description}</p>
-  </div>
-</section>
+<BaseLayout hero title={title} description={description}>
+  <header class="post-head text-mist">
+    <div class="shell pt-32 pb-14 sm:pt-40 sm:pb-16">
+      <p class="mb-4 text-[0.78rem] font-semibold tracking-[0.18em] text-dti-gold uppercase">
+        {eyebrow}
+      </p>
+      <h1 class="display max-w-3xl text-[clamp(2.2rem,5vw,3.8rem)] text-white">
+        {title}
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg text-mist/80">{description}</p>
+    </div>
+  </header>
 
-<section class="py-14 max-sm:py-10">
-  <div class="mx-auto w-[min(100%-2rem,1200px)]">
-    {tags.length > 0 && (
-      <ul class="mb-8 flex list-none flex-wrap gap-2 p-0" aria-label="Topics">
-        {tags.map((tag) => (
-          <li class="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1 text-[0.78rem] font-semibold text-[var(--color-muted)]">
-            {tag}
-          </li>
-        ))}
-      </ul>
-    )}
-
-    {posts.length === 0 ? (
-      <div class="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-12 text-center">
-        <h2>Nothing here yet</h2>
-        <p>
-          {emptyMessage} Sign in to the <a href="/admin/">content manager</a> to
-          publish your first post.
-        </p>
-      </div>
-    ) : (
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-6">
-        {posts.map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    )}
-  </div>
-</section>
+  <section class="bg-mist py-14 sm:py-20">
+    <div class="shell">
+      <PostList posts={posts} pageSize={12} emptyMessage={emptyMessage} />
+    </div>
+  </section>
+</BaseLayout>
