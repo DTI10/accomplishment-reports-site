@@ -51,18 +51,24 @@ handle if it differs.
 
 ### Publishing workflow
 
-The CMS uses the Editorial Workflow (`publish_mode` in
-`public/admin/config.yml`):
+Articles and news use the Editorial Workflow (configured per collection with
+`publish_mode` in `public/admin/config.yml`):
 
 1. An editor saves an article or news item. Sveltia opens a pull request.
 2. The editor marks it **Ready**.
 3. An admin reviews and merges the pull request, which publishes the post.
 
+The **Settings** singleton is deliberately different. Singletons always follow
+the top-level `publish_mode`, which is set to `simple`, so pressing **Save** in
+Settings commits directly to `master` and publishes immediately — there is no
+draft → Ready → Publish pipeline. Only admins can do this, because branch
+protection restricts pushes/merges to `master` to the admins team. An editor
+who opens Settings can still see it, but saving fails with a GitHub permission
+error. CODEOWNERS continues to mark `content/settings/` as admin-owned.
+
 Sveltia does not provide role-based collection visibility with the GitHub
-backend. The **Settings** singleton is therefore visible in the sidebar to
-everyone, but changes to it can only be merged by admins because of the
-CODEOWNERS + branch protection setup above. Later versions of Sveltia's
-Additions feature are expected to add native role-based UI access.
+backend. Later versions of Sveltia's Additions feature are expected to add
+native role-based UI access.
 
 ### Pull request deletion and recovery
 

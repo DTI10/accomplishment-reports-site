@@ -8,14 +8,13 @@ backend:
   branch: master
   squash_merges: true
 
-# All content changes go through a pull request. Editors can save and mark
-# entries as ready, but GitHub branch protection is what stops them from
-# merging/publishing. Only admins can approve and merge.
-publish_mode:
-  type: editorial_workflow
-  stages: [draft, pending_publish]
-  direct_publish: false
-  allow_incomplete_drafts: true
+# Articles and news use the Editorial Workflow, configured per collection
+# below: editors save a draft, mark it ready, and an admin merges the PR.
+# Sveltia singletons always follow this top-level setting, so keeping it on
+# "simple" means saving the Settings singleton commits straight to the
+# configured branch (publishing immediately) instead of opening a PR. Branch
+# protection + CODEOWNERS still limit who can push/merge settings.
+publish_mode: simple
 
 # Media is stored in public/media so Astro can serve it from /media/...
 media_folder: public/media
@@ -25,17 +24,23 @@ collections:
   - name: articles
     label: Articles
     label_singular: Article
+    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
     folder: content/articles
     create: true
-    slug: '{{slug}}'
+    slug: "{{slug}}"
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    summary: '{{title}} — {{date}}'
-    preview_path: '/articles/{{slug}}'
+    summary: "{{title}} — {{date}}"
+    preview_path: "/articles/{{slug}}"
     sortable_fields:
       - date
       - title
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
@@ -117,7 +122,7 @@ collections:
         widget: list
         required: false
         hint: Optional image carousel shown at the bottom of the article.
-        summary: '{{fields.caption}}'
+        summary: "{{fields.caption}}"
         fields:
           - { label: Image, name: image, widget: image }
           - { label: Caption, name: caption, widget: string, required: false }
@@ -141,7 +146,7 @@ collections:
         widget: list
         required: false
         hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
-        summary: '{{fields.label}}: {{fields.value}}'
+        summary: "{{fields.label}}: {{fields.value}}"
         fields:
           - { label: Label, name: label, widget: string }
           - { label: Value, name: value, widget: string }
@@ -150,14 +155,16 @@ collections:
           name: partners,
           widget: list,
           required: false,
-          hint: Partner agencies, offices, or organizations.
+          hint: Partner agencies,
+          offices,
+          or organizations.
         }
       - label: Attachments
         name: attachments
         widget: list
         required: false
         hint: Downloadable files such as press releases, MOAs, or reports.
-        summary: '{{fields.title}}'
+        summary: "{{fields.title}}"
         fields:
           - { label: Title, name: title, widget: string }
           - { label: File, name: file, widget: file }
@@ -182,7 +189,7 @@ collections:
         required: false
         filters:
           - field: slug
-            values: ['{{slug}}']
+            values: ["{{slug}}"]
             exclude: true
         hint: Pick other articles to show under "Read next".
       - {
@@ -195,18 +202,24 @@ collections:
 
   - name: news
     label: News
+    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
     label_singular: News item
     folder: content/news
     create: true
-    slug: '{{slug}}'
+    slug: "{{slug}}"
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    summary: '{{title}} — {{date}}'
-    preview_path: '/news/{{slug}}'
+    summary: "{{title}} — {{date}}"
+    preview_path: "/news/{{slug}}"
     sortable_fields:
       - date
       - title
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
@@ -288,7 +301,7 @@ collections:
         widget: list
         required: false
         hint: Optional image carousel shown at the bottom of the news item.
-        summary: '{{fields.caption}}'
+        summary: "{{fields.caption}}"
         fields:
           - { label: Image, name: image, widget: image }
           - { label: Caption, name: caption, widget: string, required: false }
@@ -312,7 +325,7 @@ collections:
         widget: list
         required: false
         hint: Highlight numbers, e.g. beneficiaries or amount disbursed.
-        summary: '{{fields.label}}: {{fields.value}}'
+        summary: "{{fields.label}}: {{fields.value}}"
         fields:
           - { label: Label, name: label, widget: string }
           - { label: Value, name: value, widget: string }
@@ -321,14 +334,16 @@ collections:
           name: partners,
           widget: list,
           required: false,
-          hint: Partner agencies, offices, or organizations.
+          hint: Partner agencies,
+          offices,
+          or organizations.
         }
       - label: Attachments
         name: attachments
         widget: list
         required: false
         hint: Downloadable files such as press releases, MOAs, or reports.
-        summary: '{{fields.title}}'
+        summary: "{{fields.title}}"
         fields:
           - { label: Title, name: title, widget: string }
           - { label: File, name: file, widget: file }
@@ -353,7 +368,7 @@ collections:
         required: false
         filters:
           - field: slug
-            values: ['{{slug}}']
+            values: ["{{slug}}"]
             exclude: true
         hint: Pick other news items to show under "Read next".
       - {
@@ -364,8 +379,10 @@ collections:
           hint: Markdown content of the news item.
         }
 
-# Site settings. Only admins are allowed to merge changes to this file via
-# the branch protection + CODEOWNERS setup described in README.md.
+# Site settings. A save is committed straight to the configured branch, with
+# no draft/ready/publish PR, because singletons follow the top-level
+# publish_mode: simple. Only admins can bypass branch protection to push this
+# file; CODEOWNERS marks it admin-only.
 singletons:
   - name: settings
     label: Settings
@@ -379,6 +396,6 @@ singletons:
         widget: boolean
         default: false
         hint: >-
-          When enabled, article and news pull requests marked as ready by an
+          When enabled, article and news requests marked as ready by an
           editor are auto-approved and merged without an admin. Settings changes
           still require an admin.
