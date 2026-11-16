@@ -6,6 +6,7 @@ import {
 	formatPostDate,
 	getPostHref,
 	getPublishedPosts,
+	getRelatedPosts,
 	getSectionForCollection,
 	type Post,
 	type PostCollection,
@@ -16,7 +17,22 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, date, description, author, image, gallery, tags } = post.data;
+const {
+	title,
+	date,
+	description,
+	author,
+	image,
+	image_alt,
+	gallery,
+	tags,
+	program,
+	event,
+	stats,
+	partners,
+	attachments,
+	contact,
+} = post.data;
 const { Content, headings } = await render(post);
 
 const collection = post.collection as PostCollection;
@@ -29,6 +45,18 @@ const previous = allPosts[currentIndex + 1];
 const next = allPosts[currentIndex - 1];
 
 const formattedDate = formatPostDate(date, 'long');
+const altText = image_alt ?? title;
+
+const relatedPosts = await getRelatedPosts(post);
+const hasContact = Boolean(contact?.name || contact?.role || contact?.email || contact?.phone);
+
+const formatEventDate = (value: Date) => {
+	const hasTime = value.getHours() !== 0 || value.getMinutes() !== 0;
+	return new Intl.DateTimeFormat('en-PH', {
+		dateStyle: 'medium',
+		...(hasTime ? { timeStyle: 'short' as const } : {}),
+	}).format(value);
+};
 
 const wordCount = (post.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 const readingTime = Math.max(1, Math.ceil(wordCount / 220));
@@ -44,6 +72,7 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 
 				<div class="article-meta">
 					<span class:list={['article-type', `article-type--${collection}`]}>{sectionLabel}</span>
+					{program && <span class="article-program">{program}</span>}
 					<time datetime={date.toISOString()}>{formattedDate}</time>
 					<span aria-hidden="true">·</span>
 					<span>{readingTime} min read</span>
@@ -52,6 +81,39 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 
 				<h1>{title}</h1>
 				{description && <p class="article-lead">{description}</p>}
+
+				{
+					event && (
+						<div class="article-event">
+							<p class="article-event-label">Event details</p>
+							<dl>
+								<div>
+									<dt>When</dt>
+									<dd>
+										<time datetime={event.start.toISOString()}>{formatEventDate(event.start)}</time>
+										{event.end && (
+											<>
+												{' – '}
+												<time datetime={event.end.toISOString()}>{formatEventDate(event.end)}</time>
+											</>
+										)}
+									</dd>
+								</div>
+								{event.venue && (
+									<div>
+										<dt>Where</dt>
+										<dd>{event.venue}</dd>
+									</div>
+								)}
+							</dl>
+							{event.registration_url && (
+								<a class="article-event-link" href={event.registration_url}>
+									Register <span aria-hidden="true">→</span>
+								</a>
+							)}
+						</div>
+					)
+				}
 
 				{
 					tags.length > 0 && (
@@ -68,7 +130,7 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 		{
 			image && (
 				<div class="container article-cover">
-					<img src={image} alt={title} />
+					<img src={image} alt={altText} />
 				</div>
 			)
 		}
@@ -80,11 +142,97 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 				</div>
 
 				{
+					stats.length > 0 && (
+						<section class="article-stats" aria-labelledby="stats-heading">
+							<h2 id="stats-heading">Key figures</h2>
+							<dl>
+								{stats.map((stat) => (
+									<div>
+										<dt>{stat.label}</dt>
+										<dd>{stat.value}</dd>
+									</div>
+								))}
+							</dl>
+						</section>
+					)
+				}
+
+				{
 					gallery.length > 0 && (
 						<section class="article-gallery" aria-labelledby="gallery-heading">
 							<h2 id="gallery-heading">Gallery</h2>
 							<ImageCarousel items={gallery} label={`Photo gallery for ${title}`} />
 						</section>
+					)
+				}
+
+				{
+					(partners.length > 0 || attachments.length > 0 || hasContact) && (
+						<section class="article-info" aria-labelledby="info-heading">
+							<h2 id="info-heading">More information</h2>
+
+							{partners.length > 0 && (
+								<div class="article-info-block">
+									<h3>Partners</h3>
+									<ul class="article-partners">
+										{partners.map((partner) => (
+											<li>{partner}</li>
+										))}
+									</ul>
+								</div>
+							)}
+
+							{attachments.length > 0 && (
+								<div class="article-info-block">
+									<h3>Downloads</h3>
+									<ul class="article-attachments">
+										{attachments.map((attachment) => (
+											<li>
+												<a href={attachment.file} download>{attachment.title}</a>
+											</li>
+										))}
+									</ul>
+								</div>
+							)}
+
+							{hasContact && (
+								<div class="article-info-block">
+									<h3>Contact</h3>
+									{contact?.name && (
+										<p>
+											{contact.name}
+											{contact.role && <span>, {contact.role}</span>}
+										</p>
+									)}
+									{!contact?.name && contact?.role && <p>{contact.role}</p>}
+									{(contact?.email || contact?.phone) && (
+										<p class="article-contact-links">
+											{contact?.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
+											{contact?.email && contact?.phone && <span aria-hidden="true"> · </span>}
+											{contact?.phone && (
+												<a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}>{contact.phone}</a>
+											)}
+										</p>
+									)}
+								</div>
+							)}
+						</section>
+					)
+				}
+
+				{
+					relatedPosts.length > 0 && (
+						<aside class="article-related" aria-labelledby="related-heading">
+							<h2 id="related-heading">Read next</h2>
+							<ul>
+								{relatedPosts.map((relatedPost) => (
+									<li>
+										<a href={getPostHref(relatedPost)}>{relatedPost.data.title}</a>
+										{relatedPost.data.description && <p>{relatedPost.data.description}</p>}
+									</li>
+								))}
+							</ul>
+						</aside>
 					)
 				}
 
@@ -174,6 +322,15 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 		color: #7a5800;
 	}
 
+	.article-program {
+		padding: 0.2rem 0.6rem;
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		color: var(--color-muted);
+		font-size: 0.68rem;
+		font-weight: 800;
+	}
+
 	.article-header h1 {
 		margin: 0.7rem 0 0.9rem;
 		font-size: clamp(2.1rem, 4.5vw, 3.2rem);
@@ -185,6 +342,170 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 		max-width: 42rem;
 		color: var(--color-muted);
 		font-size: 1.12rem;
+	}
+
+	.article-event {
+		margin-top: 1.6rem;
+		padding: 1.2rem 1.4rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-left: 4px solid var(--color-primary);
+		border-radius: var(--radius-md);
+	}
+
+	.article-event-label {
+		margin: 0 0 0.6rem;
+		color: var(--color-muted);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.article-event dl {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem 2.2rem;
+		margin: 0;
+	}
+
+	.article-event dl div {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.article-event dt {
+		color: var(--color-muted);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.article-event dd {
+		margin: 0;
+		font-weight: 600;
+	}
+
+	.article-event-link {
+		display: inline-block;
+		margin-top: 0.9rem;
+		font-size: 0.9rem;
+		font-weight: 700;
+	}
+
+	.article-stats {
+		margin-top: 2.5rem;
+		padding: 1.5rem;
+		background: #f4f8fd;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+	}
+
+	.article-stats h2 {
+		margin: 0 0 1rem;
+		font-size: 1.3rem;
+	}
+
+	.article-stats dl {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		gap: 1.2rem;
+		margin: 0;
+	}
+
+	.article-stats dt {
+		color: var(--color-muted);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.article-stats dd {
+		margin: 0.3rem 0 0;
+		color: var(--color-primary);
+		font-size: 1.8rem;
+		font-weight: 800;
+		line-height: 1;
+	}
+
+	.article-info {
+		margin-top: 3rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.article-info h2 {
+		margin: 0 0 1rem;
+		font-size: 1.3rem;
+	}
+
+	.article-info-block + .article-info-block {
+		margin-top: 1.4rem;
+	}
+
+	.article-info-block h3 {
+		margin: 0 0 0.4rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+	}
+
+	.article-info-block p {
+		margin: 0;
+	}
+
+	.article-partners,
+	.article-attachments {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.article-partners li {
+		padding: 0.25rem 0.7rem;
+		border-radius: 999px;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		font-size: 0.85rem;
+	}
+
+	.article-attachments {
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.article-related {
+		margin-top: 3rem;
+		padding: 1.4rem 1.5rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+	}
+
+	.article-related h2 {
+		margin: 0 0 0.8rem;
+		font-size: 1.1rem;
+	}
+
+	.article-related ul {
+		display: grid;
+		gap: 0.9rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.article-related p {
+		margin: 0.2rem 0 0;
+		color: var(--color-muted);
+		font-size: 0.88rem;
 	}
 
 	.article-tags {
