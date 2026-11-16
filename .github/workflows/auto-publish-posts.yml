@@ -70,15 +70,18 @@ jobs:
 
           author=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login')
 
-          # Editors have Write access. Admins have Admin/Maintain access and
-          # publish through the normal review flow instead of auto-publishing.
-          permission=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$author/permission" --jq '.permission')
-          if [ "$permission" != "write" ]; then
-            echo "$author has '$permission' permission, not editor Write access."
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "- Skipped: author \`$author\` has \`$permission\` permission, not editor Write access." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
+          # Editors (Write) and admins/maintainers can all auto-publish.
+          # The file allowlist below still applies to everyone.
+          permission=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$author/permission" --jq '.role_name')
+          case "$permission" in
+            write|maintain|admin) ;;
+            *)
+              echo "$author has '$permission' permission, which cannot auto-publish."
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "- Skipped: author \`$author\` has \`$permission\` permission (needs write, maintain or admin)." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+              ;;
+          esac
 
           files=$(gh pr diff "$PR_NUMBER" --name-only)
           if [ -z "$files" ]; then

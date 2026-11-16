@@ -8,14 +8,13 @@ backend:
   branch: master
   squash_merges: true
 
-# All content changes go through a pull request. Editors can save and mark
-# entries as ready, but GitHub branch protection is what stops them from
-# merging/publishing. Only admins can approve and merge.
-publish_mode:
-  type: editorial_workflow
-  stages: [draft, pending_publish]
-  direct_publish: false
-  allow_incomplete_drafts: true
+# Accomplishments use the Editorial Workflow, configured on the collection
+# below: editors save a draft, mark it ready, and an admin merges the PR.
+# Sveltia singletons always follow this top-level setting, so keeping it on
+# "simple" means saving the Settings singleton commits straight to the
+# configured branch (publishing immediately) instead of opening a PR. Branch
+# protection + CODEOWNERS still limit who can push/merge settings.
+publish_mode: simple
 
 # Media is stored in public/media so Astro can serve it from /media/...
 media_folder: public/media
@@ -38,17 +37,23 @@ collections:
   - name: articles
     label: Accomplishments
     label_singular: Accomplishment
+    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
     folder: content/articles
     create: true
-    slug: '{{slug}}'
+    slug: "{{slug}}"
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    summary: '{{title}} — {{date}}'
-    preview_path: '/articles/{{slug}}'
+    summary: "{{title}} — {{date}}"
+    preview_path: "/articles/{{slug}}"
     sortable_fields:
       - date
       - title
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, type: date }
