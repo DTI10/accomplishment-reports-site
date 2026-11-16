@@ -11,7 +11,9 @@
 		position: relative;
 		height: 100%;
 		overflow: hidden;
-		background: var(--color-navy-deep);
+		background:
+			radial-gradient(70% 90% at 78% 30%, #123069 0%, transparent 70%),
+			var(--color-navy-deep);
 	}
 	.fh-photo {
 		position: absolute;
@@ -20,14 +22,20 @@
 		height: 100%;
 		object-fit: cover;
 		user-select: none;
+		transition: opacity 0.4s ease;
+	}
+	/* With JavaScript, a photo stays hidden until it has loaded (set by a tiny script on the home page).
+	   Without JavaScript the class is never added, so the photo simply shows. */
+	.js img.fh-photo:not([data-loaded]) {
+		opacity: 0;
 	}
 	/* slow zoom-out each time a story appears, including the first one on page load */
 	.fh-photo.is-active {
-		animation: fh-zoom 9s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+		animation: fh-zoom 10s cubic-bezier(0.2, 0.6, 0.2, 1) both;
 	}
 	@keyframes fh-zoom {
 		from {
-			transform: scale(1.07);
+			transform: scale(1.05);
 		}
 		to {
 			transform: scale(1);
@@ -43,8 +51,12 @@
 		position: absolute;
 		inset: 0;
 		background:
-			linear-gradient(90deg, rgb(6 22 51 / 0.94) 0%, rgb(6 22 51 / 0.78) 34%, rgb(6 22 51 / 0.25) 66%, rgb(6 22 51 / 0.05) 100%),
-			linear-gradient(0deg, rgb(6 22 51 / 0.92) 0%, rgb(6 22 51 / 0) 42%);
+			/* top: keeps the floating menu readable on bright photos */
+			linear-gradient(180deg, rgb(6 22 51 / 0.5) 0%, rgb(6 22 51 / 0.28) 9%, rgb(6 22 51 / 0.1) 18%, rgb(6 22 51 / 0) 30%),
+			/* bottom: carries the slide controls */
+			linear-gradient(0deg, rgb(6 22 51 / 0.88) 0%, rgb(6 22 51 / 0.78) 14%, rgb(6 22 51 / 0.55) 28%, rgb(6 22 51 / 0.3) 42%, rgb(6 22 51 / 0.12) 58%, rgb(6 22 51 / 0) 76%),
+			/* left: carries the text, then eases out into the photo */
+			linear-gradient(90deg, rgb(6 22 51 / 0.95) 0%, rgb(6 22 51 / 0.91) 20%, rgb(6 22 51 / 0.8) 34%, rgb(6 22 51 / 0.6) 48%, rgb(6 22 51 / 0.36) 62%, rgb(6 22 51 / 0.16) 76%, rgb(6 22 51 / 0.06) 90%, rgb(6 22 51 / 0.02) 100%);
 	}
 	.fh-content {
 		position: absolute;
@@ -55,7 +67,7 @@
 		padding-bottom: 8.5rem;
 	}
 	.fh-text {
-		max-width: 48rem;
+		max-width: 40rem;
 		opacity: 0;
 		transform: translateY(14px);
 		transition:
@@ -69,8 +81,14 @@
 	.fh-title {
 		font-size: clamp(1.9rem, 3.5vw, 3.05rem);
 		font-stretch: 104%;
-		line-height: 1.04;
+		line-height: 1.08;
 		text-wrap: balance;
+		/* long titles stop at 3 lines with "..." so they stay in the dark left side of the photo */
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		padding-bottom: 0.1em; /* keeps descenders (g, y, p) from being clipped on the last line */
 	}
 	.fh-title a {
 		color: var(--color-mist);
@@ -107,7 +125,7 @@
 			bottom: 1.75rem;
 		}
 	}
-	/* desktop: the controls sit on the right, level with the Read the story button */
+	/* desktop: the controls sit on the right, level with the Read more button */
 	@media (min-width: 1024px) {
 		.fh-controls {
 			bottom: 8.5rem;
@@ -154,7 +172,9 @@
 			padding-bottom: 6.5rem;
 		}
 		.fh-shade {
-			background: linear-gradient(0deg, rgb(6 22 51 / 0.96) 0%, rgb(6 22 51 / 0.75) 45%, rgb(6 22 51 / 0.2) 100%);
+			background:
+				linear-gradient(180deg, rgb(6 22 51 / 0.45) 0%, rgb(6 22 51 / 0) 22%),
+				linear-gradient(0deg, rgb(6 22 51 / 0.96) 0%, rgb(6 22 51 / 0.9) 22%, rgb(6 22 51 / 0.74) 42%, rgb(6 22 51 / 0.5) 58%, rgb(6 22 51 / 0.28) 74%, rgb(6 22 51 / 0.12) 88%, rgb(6 22 51 / 0.06) 100%);
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
@@ -162,6 +182,9 @@
 		.fh-text {
 			transition: none;
 			transform: none;
+		}
+		.js img.fh-photo:not([data-loaded]) {
+			opacity: 1;
 		}
 	}
 

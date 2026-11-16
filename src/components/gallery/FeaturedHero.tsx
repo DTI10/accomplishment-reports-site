@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ArrowRight } from 'lucide-react';
 import Fade from 'embla-carousel-fade';
 
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from '@/components/ui/carousel';
@@ -73,8 +74,10 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 								src={item.src}
 								alt={item.alt}
 								className={cn('fh-photo', active && 'is-active')}
-								// page transition: this photo glides into the story page's main photo
-								style={active ? ({ viewTransitionName: `sp-${item.id}`, viewTransitionClass: 'story-photo' } as React.CSSProperties) : undefined}
+								// the home page script adds data-loaded before React takes over (it drives the fade-in)
+								suppressHydrationWarning
+								// Deliberately NOT given a view-transition-name: a named photo is drawn in its own layer during page
+								// transitions, above the gradient overlay, so the photo would show un-darkened until the transition ends.
 								// all stacked photos load up front so each zoom plays on a ready image
 								loading="eager"
 								fetchPriority={i === 0 ? 'high' : 'auto'}
@@ -99,10 +102,7 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 											</Badge>
 										))}
 									</div>
-									<h3
-										className="fh-title display mt-5"
-										style={active ? ({ viewTransitionName: `st-${item.id}`, viewTransitionClass: 'story-title' } as React.CSSProperties) : undefined}
-									>
+									<h3 className="fh-title display mt-5">
 										<a href={item.href} className="focus-visible:outline-dti-gold">
 											{item.title}
 										</a>
@@ -111,8 +111,11 @@ export default function FeaturedHero({ items }: { items: HeroItem[] }) {
 										{item.date}
 									</p>
 									{item.summary && <p className="fh-summary mt-4 text-mist/80">{item.summary}</p>}
-									<Button asChild className="mt-7">
-										<a href={item.href}>Read the story</a>
+									<Button asChild size="lg" className="group/cta mt-7 h-12 gap-2.5 bg-[#f2c230] px-6 text-base hover:bg-[#f7d45c] shadow-[0_14px_30px_-16px_rgb(0_0_0/0.7)] sm:mt-8 sm:h-[3.25rem] sm:gap-3 sm:px-7 sm:text-[1.05rem]">
+										<a href={item.href}>
+											Read more
+											<ArrowRight className="size-5 transition-transform duration-300 group-hover/cta:translate-x-1" aria-hidden="true" />
+										</a>
 									</Button>
 								</div>
 							</div>
