@@ -8,7 +8,7 @@ photos:
     caption: ''
     size: medium
     side: auto
-    after: null
+    after: 1
 author: Fhel Jhon Feliciano
 tags: []
 ---
