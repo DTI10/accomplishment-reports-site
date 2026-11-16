@@ -1,4 +1,4 @@
-/* Single news / article page (components/PostView.astro). */
+/* Single accomplishment page (components/PostView.astro). */
 @layer components {
   /* Title band: solid navy, soft light only at the top-left */
   .post-head {

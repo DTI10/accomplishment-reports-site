@@ -1,5 +1,5 @@
 /*
- * Admin preview for Accomplishments and News: mirrors the public page (src/components/PostView.astro and
+ * Admin preview for Accomplishments: mirrors the public page (src/components/PostView.astro and
  * src/styles/post.css) so editors see the same fonts, weights, spacing, tags and photo placement.
  * The preview pane is narrower than a desktop screen, so photos always float here.
  */

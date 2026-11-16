@@ -8,7 +8,7 @@ backend:
   branch: master
   squash_merges: true
 
-# Articles and news use the Editorial Workflow, configured per collection
+# Accomplishments use the Editorial Workflow, configured on the collection
 # below: editors save a draft, mark it ready, and an admin merges the PR.
 # Sveltia singletons always follow this top-level setting, so keeping it on
 # "simple" means saving the Settings singleton commits straight to the
@@ -141,117 +141,8 @@ collections:
           - Awards
           - Financing
 
-  - name: news
-    label: News
-    description: Saving creates a request to publish the item. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
-    label_singular: News item
-    folder: content/news
-    create: true
-    slug: "{{slug}}"
-    extension: md
-    format: yaml-frontmatter
-    identifier_field: title
-    summary: "{{title}} — {{date}}"
-    preview_path: "/news/{{slug}}"
-    sortable_fields:
-      - date
-      - title
-    publish_mode:
-      type: editorial_workflow
-      stages: [draft, pending_publish]
-      direct_publish: false
-      allow_incomplete_drafts: true
-    fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Date, name: date, widget: datetime, type: date }
-      - label: Province / Office
-        name: province
-        widget: select
-        required: false
-        hint: Pick one. Shown as a location badge on the cards and pages.
-        options:
-          - Regional Office
-          - Bukidnon
-          - Camiguin
-          - Lanao del Norte
-          - Misamis Occidental
-          - Misamis Oriental
-      - {
-          label: Main photo,
-          name: image,
-          widget: image,
-          required: false,
-          hint: "Landscape photo, about 1600px wide. Shown at the top of the story.",
-        }
-      - name: photos
-        label: More photos
-        label_singular: Photo
-        widget: list
-        required: false
-        max: 4
-        collapsed: false
-        summary: '{{fields.size}}, {{fields.side}}'
-        thumbnail: image
-        hint: "Optional, up to 4. They are placed inside the text and alternate left and right."
-        fields:
-          - { name: image, label: Photo, widget: image }
-          - name: caption
-            label: Caption
-            widget: string
-            required: false
-            hint: "Optional. Small grey text under the photo, e.g. Photo by Juan Dela Cruz."
-          - name: size
-            label: Size
-            widget: select
-            default: medium
-            options:
-              - { label: "Small", value: small }
-              - { label: "Medium", value: medium }
-              - { label: "Large", value: large }
-              - { label: "Full width (no text beside it)", value: full }
-          - name: side
-            label: Side
-            widget: select
-            default: auto
-            options:
-              - { label: "Auto (alternate left and right)", value: auto }
-              - { label: "Left", value: left }
-              - { label: "Right", value: right }
-          - name: after
-            label: Place after paragraph
-            widget: number
-            value_type: int
-            min: 0
-            required: false
-            hint: "Optional. Number of the paragraph to place this photo after (subheadings count as a paragraph). 0 = top of the text. Leave empty for automatic. A number larger than the text puts it at the end."
-      - { label: Author, name: author, widget: string, required: false }
-      - {
-          label: Story text,
-          name: body,
-          widget: richtext,
-          required: true,
-          hint: "Write or paste the text here (pasting from Word or Google Docs is fine; it is cleaned on save). A line that is only bold text becomes a subheading. Add photos with the photo fields above, not inside the text."
-        }
-      - label: Tags
-        name: tags
-        widget: select
-        multiple: true
-        required: false
-        hint: Short topic labels used by the archive filters.
-        options:
-          - Trade
-          - MSMEs
-          - Consumer
-          - Advisories
-          - Programs
-          - Events
-          - Awards
-          - Financing
-
-# Site settings. A save is committed straight to the configured branch, with
-# no draft/ready/publish PR, because singletons follow the top-level
-# publish_mode: simple. Only admins can bypass branch protection to push this
-# file; CODEOWNERS marks it admin-only.
+# Site settings. Only admins are allowed to merge changes to this file via
+# the branch protection + CODEOWNERS setup described in README.md.
 singletons:
   - name: settings
     label: Settings
@@ -265,6 +156,6 @@ singletons:
         widget: boolean
         default: false
         hint: >-
-          When enabled, accomplishments and news requests marked as ready by an
+          When enabled, accomplishment pull requests marked as ready by an
           editor are auto-approved and merged without an admin. Settings changes
           still require an admin.

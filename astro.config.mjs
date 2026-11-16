@@ -8,6 +8,12 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   integrations: [react()],
 
+  // The list of accomplishments moved from /articles/ to /accomplishments/
+  redirects: {
+    '/articles': '/accomplishments/',
+    '/news': '/accomplishments/'
+  },
+
   vite: {
     plugins: [tailwindcss()]
   }

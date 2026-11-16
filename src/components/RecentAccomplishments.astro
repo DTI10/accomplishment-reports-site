@@ -2,21 +2,19 @@
 import { getPublishedPosts } from "../lib/content"
 import PostList from "./PostList.astro"
 
-const posts = [
-  ...(await getPublishedPosts("articles")),
-  ...(await getPublishedPosts("news"))
-].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+// Newest first
+const posts = await getPublishedPosts("articles")
 ---
 
-<section id="news" class="bg-mist py-24 sm:py-32">
+<section id="accomplishments" class="bg-mist py-24 sm:py-32">
   <div class="shell">
     <div class="max-w-xl">
       <h2 class="display text-[clamp(2.2rem,4.5vw,3.6rem)] text-navy">
-        News and accomplishments
+        Accomplishments
       </h2>
       <p class="mt-5 text-ink/75">
-        The latest news and accomplishments from the Department of Trade and
-        Industry, Region 10.
+        The latest accomplishments from the Department of Trade and Industry,
+        Region 10.
       </p>
     </div>
 

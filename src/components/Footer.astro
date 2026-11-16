@@ -3,7 +3,7 @@ import { navItems } from "../lib/nav"
 
 const group = (label: string) =>
   navItems.find((i) => i.label === label)?.children ?? []
-const stories = group("Stories & Press Release")
+const offices = group("Accomplishments")
 const programs = group("Programs")
 ---
 
@@ -30,10 +30,12 @@ const programs = group("Programs")
       </p>
     </div>
 
-    <nav aria-label="Stories and press release">
-      <h2 class="font-semibold text-mist">Stories &amp; Press Release</h2>
+    <nav aria-label="Accomplishments">
+      <h2 class="font-semibold text-mist">
+        <a href="/accomplishments/" class="hover:underline hover:decoration-dti-gold hover:underline-offset-4">Accomplishments</a>
+      </h2>
       <ul class="mt-5 space-y-3 text-mist/75">
-        {stories.map((l) => (
+        {offices.map((l) => (
           <li>
             <a
               href={l.href}
@@ -59,14 +61,6 @@ const programs = group("Programs")
             </a>
           </li>
         ))}
-        <li>
-          <a
-            href="/articles/"
-            class="hover:text-mist hover:underline hover:decoration-dti-gold hover:underline-offset-4"
-          >
-            Accomplishments
-          </a>
-        </li>
         <li>
           <a
             href="#"
