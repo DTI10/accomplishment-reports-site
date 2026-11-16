@@ -4,25 +4,39 @@ An Astro site that renders accomplishments authored through Sveltia CMS.
 
 ## Content types
 
-| Type            | Folder             | URL                          |
-| :-------------- | :----------------- | :--------------------------- |
-| Accomplishments | `content/articles` | `/articles/<slug>/`          |
-| Offices (banner title) | `content/offices` | `/accomplishments/<office>/` |
+| Type                    | Folder             | URL                          |
+| :---------------------- | :----------------- | :--------------------------- |
+| Accomplishments         | `content/articles` | `/articles/<slug>/`          |
+| Province / Office pages | `content/offices`  | `/accomplishments/<office>/` |
+
+The list of all accomplishments is at `/accomplishments/`. Each Province / Office
+page (`/accomplishments/<office>/`) lists every accomplishment whose
+**Province / Office** matches it, so posts sort themselves onto the right page.
+The optional `content/offices/<office>.md` file only sets the banner title
+(`name`).
 
 Accomplishments support this frontmatter:
 
-| Field         | Required | Description                                      |
-| :------------ | :------- | :----------------------------------------------- |
-| `title`       | yes      | Post title.                                      |
-| `date`        | yes      | Publication date (`YYYY-MM-DD`).                 |
-| `description` | no       | Short summary shown on cards.                    |
-| `author`      | no       | Author name.                                     |
-| `image`       | no       | Cover image path, e.g. `/media/photo.jpg`.       |
-| `gallery`     | no       | List of `{ image, caption }` items for carousel. |
-| `tags`        | no       | List of topic labels.                            |
+| Field      | Required | Description                                                                                             |
+| :--------- | :------- | :------------------------------------------------------------------------------------------------------ |
+| `title`    | yes      | Post title.                                                                                             |
+| `date`     | yes      | Publication date (`YYYY-MM-DD`).                                                                        |
+| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.        |
+| `image`    | no       | Main photo path, e.g. `/media/photo.jpg`. Its alt text comes from the file name.                        |
+| `photos`   | no       | Up to 4 `{ image, caption, size, side, after }` photos placed inside the text.                          |
+| `author`   | no       | Author name, shown under the text.                                                                      |
+| `tags`     | no       | List of topic labels.                                                                                   |
 
-The Markdown body is rendered on the post page. Uploaded media is stored in
-`public/media/` and served from `/media/...`.
+The Markdown `body` is required and is rendered on the post page. The first
+paragraph is used as the summary on cards and in link previews. Uploaded media
+is stored in `public/media/` and served from `/media/...`.
+
+Select-field options are defined in `public/admin/config.yml`:
+
+- **Province / Office:** Regional Office, Bukidnon, Camiguin, Lanao del Norte,
+  Misamis Occidental, Misamis Oriental.
+- **Tags:** Trade, MSMEs, Consumer, Advisories, Programs, Events, Awards,
+  Financing.
 
 ## CMS accounts and roles
 
@@ -31,8 +45,8 @@ database. Roles are enforced by GitHub teams and branch protection:
 
 - **Editors** — members of the `editors` GitHub team with repository **Write**
   access. They can create and edit accomplishments, save them as pull requests,
-  and mark them as ready. They cannot merge to `master`, but GitHub Write
-  access does allow them to close any PR and delete its branch; see
+  and set the status to **Ready**. They cannot merge to `master`, but GitHub
+  Write access does allow them to close any PR and delete its branch; see
   [Pull request deletion and recovery](#pull-request-deletion-and-recovery).
 - **Admins** — members of the `admins` GitHub team with repository **Admin** or
   **Maintain** access. They review and merge/publish pull requests.
@@ -55,8 +69,12 @@ Accomplishments use the Editorial Workflow (configured on the collection with
 `publish_mode` in `public/admin/config.yml`):
 
 1. An editor saves an accomplishment. Sveltia opens a pull request.
-2. The editor marks it **Ready**.
+2. The editor sets the **Status** button at the top right to **Ready**.
 3. An admin reviews and merges the pull request, which publishes the post.
+
+Each collection’s `description` in `public/admin/config.yml` reminds editors
+of these steps inside the CMS. Editors cannot merge to `master`; branch
+protection blocks it, so the CMS Publish action fails for them.
 
 The **Settings** singleton is deliberately different. Singletons always follow
 the top-level `publish_mode`, which is set to `simple`, so pressing **Save** in
@@ -103,7 +121,7 @@ and auto-publish setup.
 The **Settings** singleton writes to `content/settings/settings.yml`:
 
 ```yaml
-auto_publish: false
+auto_publish: true
 ```
 
 When enabled, `.github/workflows/auto-publish-posts.yml` automatically
@@ -149,22 +167,27 @@ repository. Without the secret, the workflow exits without merging.
 
 ## Components
 
-- `Header.astro`, `Footer.astro` — site chrome.
+- `Nav.astro`, `Footer.astro` — site chrome, including the mobile menu.
+- `BackToTop.astro` — scroll-to-top button with reading progress.
+- `RecentAccomplishments.astro` — home page accomplishments grid.
+- `PostList.astro` — card grid with search, province/office and year filters.
 - `PostCard.astro` — accomplishment card with date stamp.
-- `PostArchive.astro` — shared list page for `/accomplishments`.
-- `PostView.astro` — shared post page with Markdown, gallery, TOC, and prev/next.
-- `ImageCarousel.astro` — accessible image carousel with dots, arrows, and swipe.
+- `PostArchive.astro` — list page for `/accomplishments`.
+- `PostView.astro` — post page with Markdown text, inline photos and a
+  "More accomplishments" strip.
+- `gallery/FeaturedHero.tsx` — home page hero carousel for the latest posts.
+- `pages/accomplishments/[office].astro` — Province / Office pages.
 - `BaseLayout.astro` — HTML shell, metadata, and global styles.
 
 ## Commands
 
-| Command           | Action                                           |
-| :---------------- | :----------------------------------------------- |
-| `npm install`     | Install dependencies.                            |
-| `npm run dev`     | Start the dev server at `localhost:4321`.        |
-| `npm run build`   | Build the production site to `./dist/`.          |
-| `npm run preview` | Preview the production build.                    |
-| `npm run astro`   | Run Astro CLI commands like `astro check`.       |
+| Command           | Action                                     |
+| :---------------- | :----------------------------------------- |
+| `npm install`     | Install dependencies.                      |
+| `npm run dev`     | Start the dev server at `localhost:4321`.  |
+| `npm run build`   | Build the production site to `./dist/`.    |
+| `npm run preview` | Preview the production build.              |
+| `npm run astro`   | Run Astro CLI commands like `astro check`. |
 
 The CMS is available at `/admin/`.
 
@@ -218,19 +241,19 @@ sudo chown -R deploy:deploy /var/www/dti-accomp
 Add these under **Settings → Secrets and variables → Actions** (or the
 `production` environment):
 
-| Secret               | Required | Value                                                    |
-| :------------------- | :------- | :------------------------------------------------------- |
-| `DEPLOY_HOST`        | yes      | Server hostname or IP.                                   |
-| `DEPLOY_USER`        | yes      | SSH user, e.g. `deploy`.                                 |
-| `DEPLOY_SSH_KEY`     | yes      | Private key for the deploy user.                         |
-| `DEPLOY_PATH`        | yes      | Absolute path, e.g. `/var/www/dti-accomp`.               |
-| `DEPLOY_PORT`        | no       | SSH port. Defaults to `22`.                              |
-| `DEPLOY_KNOWN_HOSTS` | no       | Pre-pinned `known_hosts` entry. Otherwise uses keyscan.  |
+| Secret               | Required | Value                                                   |
+| :------------------- | :------- | :------------------------------------------------------ |
+| `DEPLOY_HOST`        | yes      | Server hostname or IP.                                  |
+| `DEPLOY_USER`        | yes      | SSH user, e.g. `deploy`.                                |
+| `DEPLOY_SSH_KEY`     | yes      | Private key for the deploy user.                        |
+| `DEPLOY_PATH`        | yes      | Absolute path, e.g. `/var/www/dti-accomp`.              |
+| `DEPLOY_PORT`        | no       | SSH port. Defaults to `22`.                             |
+| `DEPLOY_KNOWN_HOSTS` | no       | Pre-pinned `known_hosts` entry. Otherwise uses keyscan. |
 
 After a merge, the flow is:
 
 ```text
-Editor saves → PR → admin merges (or auto-publish merges)
+Editor saves → Status: Ready → PR → admin merges (or auto-publish merges)
 → push to master
 → deploy.yml builds dist/
 → rsync to releases/<sha>
@@ -238,7 +261,8 @@ Editor saves → PR → admin merges (or auto-publish merges)
 → live site updated
 ```
 
+Saving **Settings** skips this pipeline: it commits straight to `master`, which
+also triggers `deploy.yml`.
+
 Use **Actions → Deploy production → Run workflow** to redeploy `master`
 manually.
-
-
