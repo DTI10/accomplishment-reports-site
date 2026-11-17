@@ -1,0 +1,18 @@
+# SITE_ADDRESS can be a hostname (auto HTTPS via Let's Encrypt) or ":80"
+# for plain HTTP, e.g. behind another load balancer.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	reverse_proxy web:80
+
+	log {
+		output stdout
+		format console
+	}
+}
