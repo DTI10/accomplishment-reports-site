@@ -1,0 +1,219 @@
+---
+import { getEntry, render } from "astro:content"
+import PostList from "../../components/PostList.astro"
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import { getPublishedPosts } from "../../lib/content"
+import { getPrograms } from "../../lib/programs"
+
+export async function getStaticPaths() {
+  return (await getPrograms()).map((program) => ({
+    params: { program: program.slug },
+    props: { program }
+  }))
+}
+
+const { program } = Astro.props
+
+const entry = await getEntry("programs", program.slug)
+const name = entry?.data.name ?? program.label
+const tagline = entry?.data.tagline
+const banner = entry?.data.banner
+const stats = entry?.data.stats ?? []
+const dashboard = entry?.data.dashboard
+// The embed address ends in /embed/reporting/..., the full report opens at /reporting/...
+const dashboardPage = dashboard?.replace("/embed/reporting/", "/reporting/")
+const Content = entry ? (await render(entry)).Content : null
+
+// Accomplishments tagged with this program's name (add the tag "SSF" or "RAPID" in the CMS)
+const related = (await getPublishedPosts("articles")).filter((post) =>
+  post.data.tags.includes(program.label)
+)
+---
+
+<BaseLayout hero title={name} description={tagline ?? `${name}, DTI Region 10.`}>
+  <header class="post-head relative isolate overflow-hidden text-mist">
+    {banner && (
+      <>
+        {/* The photo sits on the right and is shown in greyscale, so the brand navy sets the colour. */}
+        <img
+          src={banner}
+          alt=""
+          fetchpriority="high"
+          class="pointer-events-none absolute inset-y-0 right-0 -z-20 h-full w-full object-cover object-center opacity-80 grayscale lg:w-[68%]"
+        />
+        {/* The gradient above the photo: solid navy behind the text, fading to reveal the photo on the right. */}
+        <div
+          class="pointer-events-none absolute inset-0 -z-10 bg-navy/70 lg:bg-linear-to-r lg:from-navy lg:from-32% lg:via-navy/70 lg:via-55% lg:to-navy/10"
+          aria-hidden="true"
+        ></div>
+      </>
+    )}
+    <div class="shell relative pt-32 pb-12 sm:pt-36 sm:pb-14">
+      <nav aria-label="Breadcrumb" class="text-sm text-dti-gold">
+        <span>Programs</span>
+        <span aria-hidden="true" class="mx-2 text-dti-gold/60">/</span>
+        <span aria-current="page">{program.label}</span>
+      </nav>
+      <h1 class="display mt-6 max-w-4xl text-[clamp(2rem,4.5vw,3.25rem)] text-white">
+        {name}
+      </h1>
+      {tagline && <p class="mt-5 max-w-2xl text-lg text-mist/80">{tagline}</p>}
+    </div>
+  </header>
+
+  <section class="bg-mist" aria-labelledby="about-heading">
+    <div class="shell py-14 sm:py-16">
+      <p class="text-[0.7rem] font-semibold tracking-[0.18em] text-ink/55 uppercase">
+        Program overview
+      </p>
+      <h2 id="about-heading" class="display mt-2 text-[clamp(1.5rem,2.6vw,2rem)] text-navy">
+        About {program.label}
+      </h2>
+      <div class="mt-6">
+        {Content ? (
+          <div class="prose max-w-3xl [&_h2]:font-bold [&_h2]:text-navy [&_h3]:font-semibold [&_h3]:text-navy [&_ul]:list-disc [&_ul]:marker:text-navy/40 [&_strong]:text-navy"><Content /></div>
+        ) : (
+          <p class="text-ink/65">This page is being prepared.</p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  {stats.length > 0 && (
+    <section class="bg-mist-deep/60" aria-label={`${program.label} at a glance`}>
+      <div class="shell py-12 sm:py-14">
+        <dl class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <div
+              data-stat
+              class="rounded-xl border border-navy/10 bg-white p-5 shadow-sm sm:p-6"
+            >
+              <dt class="text-sm font-medium text-ink/70">{stat.label}</dt>
+              <dd
+                data-stat-value
+                class="mt-3 text-[clamp(2rem,3.2vw,2.5rem)] leading-none font-semibold tracking-tight text-navy tabular-nums"
+              >
+                {stat.value}
+              </dd>
+              {stat.note && <p class="mt-2 text-xs text-ink/55">{stat.note}</p>}
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )}
+
+  {dashboard && (
+    <section class="bg-mist-deep/60" aria-labelledby="dashboard-heading">
+      <div class:list={["shell pb-14 sm:pb-16", stats.length === 0 && "pt-14 sm:pt-16"]}>
+       <div class:list={[stats.length > 0 && "border-t border-navy/10 pt-12 sm:pt-14"]}>
+        <p class="text-[0.7rem] font-semibold tracking-[0.18em] text-ink/55 uppercase">
+          Interactive report
+        </p>
+        <h2 id="dashboard-heading" class="display mt-2 text-[clamp(1.5rem,2.6vw,2rem)] text-navy">
+          {program.label} dashboard
+        </h2>
+        <p class="mt-3 max-w-2xl text-ink/70">
+          Explore the program's data in the report below. Use the controls inside it to filter and compare.
+        </p>
+
+        <div class="mt-8 overflow-hidden rounded-xl border border-navy/10 bg-white shadow-sm">
+          <div class="relative aspect-[4/3] min-h-[22rem] w-full lg:aspect-[16/10]">
+            <p class="absolute inset-0 grid place-items-center text-sm text-ink/50" aria-hidden="true">
+              Loading report…
+            </p>
+            <iframe
+              title={`${program.label} dashboard (Looker Studio report)`}
+              src={dashboard}
+              loading="lazy"
+              allowfullscreen
+              class="absolute inset-0 h-full w-full border-0"
+              sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            ></iframe>
+          </div>
+        </div>
+
+        <p class="mt-4 text-sm text-ink/65">
+          Trouble viewing it?{" "}
+          <a
+            href={dashboardPage}
+            target="_blank"
+            rel="noopener"
+            class="font-semibold text-navy underline decoration-navy/40 underline-offset-4 hover:decoration-navy"
+          >
+            Open the full report in a new tab<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </p>
+       </div>
+      </div>
+    </section>
+  )}
+
+  {related.length > 0 && (
+    <section class="bg-mist" aria-label={`${program.label} accomplishments`}>
+      <div class="shell py-14 sm:py-16">
+        <h2 class="display text-[clamp(1.5rem,2.6vw,2rem)] text-navy">Accomplishments</h2>
+        <div class="mt-8">
+          <PostList posts={related} showFilters={false} pageSize={6} morph />
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<script>
+  // Stat figures count up when their card is scrolled into view (the cards themselves do not move).
+  // Without JavaScript, or with reduced motion, the final figures simply show.
+  const cards = [...document.querySelectorAll<HTMLElement>("[data-stat]")]
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  // "1,250", "₱12M", "6 of 6" -> a prefix, the first number, and the rest. Anything else stays as written.
+  const parse = (text: string) => {
+    const m = text.trim().match(/^(\D*?)(\d[\d,]*(?:\.\d+)?)(.*)$/)
+    if (!m || /^0\d/.test(m[2])) return null
+    const target = Number(m[2].replace(/,/g, ""))
+    if (!Number.isFinite(target) || target === 0) return null
+    const decimals = m[2].split(".")[1]?.length ?? 0
+    const grouped = m[2].includes(",")
+    const format = (n: number) =>
+      n.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+        useGrouping: grouped
+      })
+    return { prefix: m[1], suffix: m[3], target, format }
+  }
+
+  const countUp = (el: HTMLElement) => {
+    const p = parse(el.textContent ?? "")
+    if (!p) return
+    const final = el.textContent ?? ""
+    const start = performance.now()
+    const duration = 1100
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - t, 4)
+      el.textContent = t < 1 ? p.prefix + p.format(p.target * eased) + p.suffix : final
+      if (t < 1) requestAnimationFrame(tick)
+    }
+    el.textContent = p.prefix + p.format(0) + p.suffix
+    requestAnimationFrame(tick)
+  }
+
+  if (!calm && cards.length > 0 && "IntersectionObserver" in window) {
+    const seen = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          const card = entry.target as HTMLElement
+          const i = cards.indexOf(card)
+          seen.unobserve(card)
+          const value = card.querySelector<HTMLElement>("[data-stat-value]")
+          if (value) window.setTimeout(() => countUp(value), i * 90)
+        })
+      },
+      { threshold: 0.35 }
+    )
+    cards.forEach((card) => seen.observe(card))
+  }
+</script>
