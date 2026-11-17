@@ -1,4 +1,5 @@
 import { OFFICES, officeHref } from './offices';
+import { programHref } from './programs';
 
 export interface NavItem {
 	label: string;
@@ -23,8 +24,8 @@ export const navItems: NavItem[] = [
 		label: 'Programs',
 		href: '#',
 		children: [
-			{ label: 'SSF', href: '#' },
-			{ label: 'RAPID', href: '#' },
+			{ label: 'SSF', href: programHref('ssf') },
+			{ label: 'RAPID', href: programHref('rapid') },
 		],
 	},
 	{
