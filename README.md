@@ -207,57 +207,58 @@ the pull can apply cleanly.
 
 ## Production deployment
 
-Production does not pull from Git. `.github/workflows/deploy.yml` runs on every
-push to `master` — including merges from the editorial workflow and
-auto-published posts — builds the site, uploads `dist/` over SSH, and
-atomically switches the live symlink.
-
-The deployment layout on the VPS is:
+Production is containerized. `.github/workflows/deploy.yml` runs on every push
+to `master` — including merges from the editorial workflow and auto-published
+posts — on a **self-hosted runner installed on the production host**. The runner
+checks out the repository, then `docker compose up -d --build` builds the site
+inside the Docker image and starts it behind a Caddy reverse proxy.
 
 ```text
-/var/www/dti-accomp/
-├── releases/
-│   ├── <commit-sha>/
-│   └── ...
-└── current -> releases/<latest-commit-sha>
+compose.yaml
+├── web    → multi-stage Dockerfile: Node builds Astro, nginx serves dist/
+└── caddy  → reverse proxy on :80/:443, automatic HTTPS for SITE_ADDRESS
 ```
 
-Point nginx or Caddy at `/var/www/dti-accomp/current`.
+The build happens inside the image (`npm ci && npm run build`), so the runner
+only needs Docker with the Compose plugin — not Node, rsync, or SSH keys.
 
 ### Server prerequisites
 
-- A dedicated deploy user, e.g. `deploy`.
-- `rsync` installed on the server.
-- Write access for the deploy user to `DEPLOY_PATH`.
-- An SSH key authorized for the deploy user.
+- A self-hosted GitHub Actions runner registered for this repository and
+  labelled `self-hosted` (default labels are fine).
+- Docker Engine with the Compose v2 plugin, usable by the runner's user.
+- Ports 80 and 443 reachable from the internet (or another edge proxy).
+
+Bring the stack up manually once to seed the Caddy volumes and DNS/TLS:
 
 ```sh
-sudo mkdir -p /var/www/dti-accomp/releases
-sudo chown -R deploy:deploy /var/www/dti-accomp
+SITE_ADDRESS=example.com docker compose up -d --build
 ```
 
-### GitHub repository secrets
+### Configuration
 
-Add these under **Settings → Secrets and variables → Actions** (or the
-`production` environment):
+Set these as **repository variables** under **Settings → Secrets and variables
+→ Actions → Variables** (or on the `production` environment). They are read by
+`compose.yaml`; defaults shown are used when unset.
 
-| Secret               | Required | Value                                                   |
-| :------------------- | :------- | :------------------------------------------------------ |
-| `DEPLOY_HOST`        | yes      | Server hostname or IP.                                  |
-| `DEPLOY_USER`        | yes      | SSH user, e.g. `deploy`.                                |
-| `DEPLOY_SSH_KEY`     | yes      | Private key for the deploy user.                        |
-| `DEPLOY_PATH`        | yes      | Absolute path, e.g. `/var/www/dti-accomp`.              |
-| `DEPLOY_PORT`        | no       | SSH port. Defaults to `22`.                             |
-| `DEPLOY_KNOWN_HOSTS` | no       | Pre-pinned `known_hosts` entry. Otherwise uses keyscan. |
+| Variable       | Required | Default     | Value                                               |
+| :------------- | :------- | :---------- | :-------------------------------------------------- |
+| `SITE_ADDRESS` | no       | `localhost` | Public hostname, e.g. `dti-accomp.example.com`.     |
+| `HTTP_PORT`    | no       | `80`        | Host port for plain HTTP (ACME + redirect).         |
+| `HTTPS_PORT`   | no       | `443`       | Host port for HTTPS.                                |
+
+Point DNS for `SITE_ADDRESS` at the host before the first deploy so Caddy can
+issue a certificate. For local testing, `SITE_ADDRESS=:80` serves plain HTTP
+without certificates.
 
 After a merge, the flow is:
 
 ```text
 Editor saves → Status: Ready → PR → admin merges (or auto-publish merges)
 → push to master
-→ deploy.yml builds dist/
-→ rsync to releases/<sha>
-→ current symlink switches
+→ self-hosted runner checks out the repo
+→ docker compose builds the image (npm ci && astro build)
+→ web container starts, Caddy proxies to it
 → live site updated
 ```
 
