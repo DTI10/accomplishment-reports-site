@@ -20,6 +20,6 @@ On August 11, 2026, we joined key government agencies, local government units, a
 
 IACT 10 is the region's coordinating body that unites 35 partner institutions to streamline permits, handle aftercare services, and drive regional growth.
 
-NORMINVEST is a new one-stop digital portal ([norminvest.dti.gov.ph](https://www.norminvest.dti.gov.ph/)) that centralizes investment information, incentives, registration requirements, and economic profiles for investors.
+NORMINVEST is a new one-stop digital portal ([norminvest.dti.gov.ph](https://norminvest.dti.gov.ph/)) that centralizes investment information, incentives, registration requirements, and economic profiles for investors.
 
-Explore the portal today at [www.norminvest.dti.gov.ph](https://www.norminvest.dti.gov.ph/)
+Explore the portal today at [norminvest.dti.gov.ph](https://norminvest.dti.gov.ph/)
