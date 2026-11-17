@@ -141,6 +141,103 @@ collections:
           - Awards
           - Financing
 
+  # Program pages such as SSF and RAPID (content/programs/<name>.md). Every entry gets its own page at
+  # /programs/<name>/ and its own link in the Programs menu, so programs can be added, edited and deleted here.
+  - name: programs
+    label: Programs
+    label_singular: Program
+    description: Add or edit program pages such as SSF and RAPID, including their figure cards. Saving creates a request to publish the change. Set the Status button at the top right to "Ready" to mark it as ready, an admin will review and publish it.
+    folder: content/programs
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: name
+    summary: "{{name}}"
+    preview_path: "/programs/{{slug}}"
+    editor:
+      preview: false
+    publish_mode:
+      type: editorial_workflow
+      stages: [draft, pending_publish]
+      direct_publish: false
+      allow_incomplete_drafts: true
+    fields:
+      - { label: Page title, name: name, widget: string }
+      - {
+          label: Short name,
+          name: label,
+          widget: string,
+          required: false,
+          hint: "Used in the menu and the page heading, e.g. SSF. Also the tag that links accomplishments to this program. Leave empty to use the page title."
+        }
+      - {
+          label: Menu order,
+          name: order,
+          widget: number,
+          value_type: int,
+          min: 1,
+          required: false,
+          hint: "Optional. Programs with a lower number come first in the menu."
+        }
+      - {
+          label: Line under the title,
+          name: tagline,
+          widget: string,
+          required: false,
+          hint: "One short sentence shown in the top banner."
+        }
+      - {
+          label: Banner photo,
+          name: banner,
+          widget: image,
+          required: false,
+          hint: "Optional. A landscape photo, 1600px wide or more, without a colour tint. It shows in greyscale behind the top banner."
+        }
+      - label: Figure cards
+        name: stats
+        label_singular: Card
+        widget: list
+        required: false
+        max: 4
+        collapsed: false
+        summary: "{{fields.label}}: {{fields.value}}"
+        hint: "Up to 4 cards shown under the About text. Add, edit, reorder or delete them here."
+        fields:
+          - {
+              label: Title,
+              name: label,
+              widget: string,
+              hint: "What the number counts, e.g. MSME beneficiaries."
+            }
+          - {
+              label: Number,
+              name: value,
+              widget: string,
+              hint: "Type it as it should appear, e.g. 1,250 or ₱12M or 6 of 6. It counts up on the page."
+            }
+          - {
+              label: Short description,
+              name: note,
+              widget: string,
+              required: false,
+              hint: "Optional small line under the card, e.g. As of December 2025."
+            }
+      - {
+          label: Dashboard report address,
+          name: dashboard,
+          widget: string,
+          required: false,
+          hint: "Optional. The address of a Looker Studio report (Share, then Embed report, then the part after src=). Leave empty to show no dashboard."
+        }
+      - {
+          label: About text,
+          name: body,
+          widget: richtext,
+          required: true,
+          hint: "The text shown under About. A line that is only bold text becomes a subheading."
+        }
+
 # Site settings. Only admins are allowed to merge changes to this file via
 # the branch protection + CODEOWNERS setup described in README.md.
 singletons:
