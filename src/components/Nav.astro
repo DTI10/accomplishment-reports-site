@@ -1,129 +1,160 @@
 ---
-import { navItems } from "../lib/nav"
+import { navItems, type NavItem } from "../lib/nav"
 
 const NATIONAL = "https://www.dti.gov.ph"
+
+// Which page are we on? Used for the "you are here" underline and aria-current.
+const norm = (p: string) => p.replace(/\/+$/, "") || "/"
+const here = norm(Astro.url.pathname)
+const isCurrent = (href: string) =>
+  href !== "#" && !href.startsWith("http") && norm(href) === here
+// A section is current when one of its pages is open (stories live under /articles/ but are accomplishments)
+const isSection = (item: NavItem) =>
+  Boolean(item.children?.some((c) => isCurrent(c.href))) ||
+  (item.href === "/accomplishments/" &&
+    (here.startsWith("/accomplishments") || here.startsWith("/articles")))
+const isActive = (item: NavItem) => isCurrent(item.href) || isSection(item)
+const ariaCurrent = (item: NavItem) =>
+  isCurrent(item.href) ? "page" : isSection(item) ? "true" : undefined
+
+// Top-level link: a quiet gold underline grows from the middle on hover and stays for the current page.
+const linkBase =
+  "relative rounded px-3 py-2 transition-colors hover:text-navy group-hover:text-navy data-[active]:text-navy after:absolute after:inset-x-3 after:bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-dti-gold after:transition-transform after:duration-200 after:ease-out hover:after:scale-x-100 group-hover:after:scale-x-100 data-[active]:after:scale-x-100 motion-reduce:after:transition-none"
+const chevron =
+  "shrink-0 transition-transform duration-200 ease-out group-hover:rotate-180 group-focus-within:rotate-180 group-aria-expanded/btn:rotate-180 motion-reduce:transition-none"
+const external =
+  "M4.5 11.5l7-7M5.5 4.5h6v6"
 ---
 
-<header class="pointer-events-none fixed inset-x-0 top-3 z-50" data-nav>
+<header
+  class="group/nav pointer-events-none fixed inset-x-0 top-3 z-50 [&_:focus-visible]:outline-navy"
+  data-nav
+>
+  <!-- soft backdrop behind the phone menu -->
+  <div
+    data-menu-scrim
+    aria-hidden="true"
+    class="pointer-events-none fixed inset-0 -z-10 bg-navy-deep/45 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 data-[open]:pointer-events-auto data-[open]:opacity-100 motion-reduce:transition-none xl:hidden"
+  >
+  </div>
+
   <nav
-    class="pointer-events-auto mx-auto flex w-[calc(100%-2rem)] max-w-[76rem] items-center justify-between gap-4 rounded-[10px] bg-white/[0.94] px-3 py-2 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_14px_34px_-14px_rgb(6_22_51/0.55)] backdrop-blur-[14px] backdrop-saturate-[1.3] [view-transition-name:site-nav]"
+    class="pointer-events-auto mx-auto flex w-[calc(100%-2rem)] max-w-[76rem] items-center justify-between gap-4 rounded-[10px] bg-white/[0.94] px-3 py-2 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_14px_34px_-14px_rgb(6_22_51/0.55)] backdrop-blur-[14px] backdrop-saturate-[1.3] transition-[padding,box-shadow,background-color] duration-300 ease-out group-data-[scrolled]/nav:bg-white/[0.98] group-data-[scrolled]/nav:py-1.5 group-data-[scrolled]/nav:shadow-[0_0_0_1px_rgb(10_31_68/0.1),0_18px_40px_-14px_rgb(6_22_51/0.65)] motion-reduce:transition-none [view-transition-name:site-nav]"
     aria-label="Main"
   >
     <a
       href="/"
       class="flex items-center gap-3 rounded-sm"
-      aria-label="DTI Region 10, home"
+      aria-label="DTI Region 10 Accomplishment Report, home"
+      aria-current={here === "/" ? "page" : undefined}
     >
       <img
         src="/brand/dti-rapid.png"
         alt=""
         width="40"
         height="40"
-        class="h-10 w-auto"
+        class="h-10 w-auto transition-[height] duration-300 ease-out group-data-[scrolled]/nav:h-9 motion-reduce:transition-none"
       />
-      <span class="hidden whitespace-nowrap text-sm leading-tight sm:block">
-        <span class="block font-bold tracking-tight text-navy">Region 10</span>
-        <span class="block text-[0.8rem] text-ink/60">Northern Mindanao</span>
+      <span class="block whitespace-nowrap text-sm leading-tight">
+        <span class="block font-bold tracking-tight text-navy">DTI Region 10</span>
+        <span class="block text-[0.72rem] text-ink/60 sm:text-[0.8rem]">Accomplishment Report</span>
       </span>
     </a>
 
     <!-- Wide screens: links in the bar, with dropdowns -->
     <ul class="hidden items-center gap-1 whitespace-nowrap text-[0.92rem] font-medium text-navy/85 xl:flex">
-      {navItems.map((item) => (
-        <li
-          class:list={[
-            "relative",
-            {
-              group: item.children,
-              "flex items-center": item.children && item.href !== "#"
-            }
-          ]}
-        >
-          {item.children ? (
-            <>
-              {item.href !== "#" ? (
-                <>
-                  <a
-                    href={item.href}
-                    class="rounded px-3 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
-                  >
-                    {item.label}
-                  </a>
+      {navItems.map((item) => {
+        const active = isActive(item)
+        return (
+          <li
+            class:list={[
+              "relative",
+              {
+                group: item.children,
+                "flex items-center": item.children && item.href !== "#"
+              }
+            ]}
+          >
+            {item.children ? (
+              <>
+                {item.href !== "#" ? (
+                  <>
+                    <a
+                      href={item.href}
+                      class={linkBase}
+                      data-active={active ? "" : undefined}
+                      aria-current={ariaCurrent(item)}
+                    >
+                      {item.label}
+                    </a>
+                    <button
+                      type="button"
+                      class="group/btn -ml-2 rounded px-2 py-2 transition-colors hover:text-navy group-hover:text-navy"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      aria-label={`${item.label} menu`}
+                      data-drop
+                    >
+                      <svg viewBox="0 0 12 8" width="10" height="7" aria-hidden="true" class={chevron}>
+                        <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      </svg>
+                    </button>
+                  </>
+                ) : (
                   <button
                     type="button"
-                    class="-ml-2 rounded px-2 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
+                    class={`group/btn flex items-center gap-1 ${linkBase}`}
+                    data-active={active ? "" : undefined}
                     aria-expanded="false"
                     aria-haspopup="true"
-                    aria-label={`${item.label} menu`}
                     data-drop
                   >
-                    <svg
-                  viewBox="0 0 12 8"
-                  width="10"
-                  height="7"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M1 1.5l5 5 5-5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                  />
-                </svg>
+                    {item.label}
+                    <svg viewBox="0 0 12 8" width="10" height="7" aria-hidden="true" class={chevron}>
+                      <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    </svg>
                   </button>
-                </>
-              ) : (
-              <button
-                type="button"
-                class="flex items-center gap-1 rounded px-3 py-2 transition-colors hover:text-dti-blue group-hover:text-dti-blue"
-                aria-expanded="false"
-                aria-haspopup="true"
-                data-drop
+                )}
+                <ul
+                  class="pointer-events-none invisible absolute top-full left-0 z-10 mt-[0.85rem] min-w-60 origin-top-left translate-y-[-0.25rem] scale-[0.985] rounded-[10px] bg-white p-[0.4rem] opacity-0 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_18px_40px_-14px_rgb(6_22_51/0.5)] transition-[opacity,transform,scale,visibility] delay-[140ms] duration-[180ms] ease-[var(--ease-out-quint)] before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-hover:delay-0 group-hover:duration-[240ms] group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:scale-100 group-focus-within:opacity-100 group-focus-within:delay-0 group-focus-within:duration-[240ms] data-[open]:pointer-events-auto data-[open]:visible data-[open]:translate-y-0 data-[open]:scale-100 data-[open]:opacity-100 data-[open]:delay-0 data-[open]:duration-[240ms] motion-reduce:transition-none"
+                  data-drop-panel
+                >
+                  {item.children.map((c, i) => (
+                    <li style={`--i:${i}`}>
+                      <a
+                        class="flex items-center justify-between gap-3 rounded-md px-[0.8rem] py-[0.65rem] text-[0.95rem] font-medium text-navy hover:bg-navy/[0.06] aria-[current=page]:bg-navy/[0.06] aria-[current=page]:font-semibold"
+                        href={c.href}
+                        target={c.external ? "_blank" : undefined}
+                        rel={c.external ? "noopener" : undefined}
+                        aria-current={isCurrent(c.href) ? "page" : undefined}
+                      >
+                        {c.label}
+                        {c.external && (
+                          <>
+                            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" class="shrink-0 text-navy/50">
+                              <path d={external} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span class="sr-only">(opens in a new tab)</span>
+                          </>
+                        )}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <a
+                href={item.href}
+                class={`block ${linkBase}`}
+                data-active={active ? "" : undefined}
+                aria-current={ariaCurrent(item)}
               >
                 {item.label}
-                <svg
-                  viewBox="0 0 12 8"
-                  width="10"
-                  height="7"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M1 1.5l5 5 5-5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                  />
-                </svg>
-              </button>
-              )}
-              <ul
-                class="pointer-events-none invisible absolute top-full left-0 z-10 mt-[0.85rem] min-w-60 translate-y-[-0.4rem] rounded-[10px] bg-white p-[0.4rem] opacity-0 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_18px_40px_-14px_rgb(6_22_51/0.5)] transition-[opacity,transform,visibility] duration-200 ease-[var(--ease-out-quint)] before:absolute before:inset-x-0 before:-top-4 before:h-4 before:content-[''] group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 data-[open]:pointer-events-auto data-[open]:visible data-[open]:translate-y-0 data-[open]:opacity-100"
-                data-drop-panel
-              >
-                {item.children.map((c) => (
-                  <li>
-                    <a
-                      class="block rounded-md px-[0.8rem] py-[0.65rem] text-[0.95rem] font-medium text-navy hover:bg-navy/[0.06] hover:text-dti-blue"
-                      href={c.href}
-                      target={c.external ? "_blank" : undefined}
-                      rel={c.external ? "noopener" : undefined}
-                    >
-                      {c.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <a
-              href={item.href}
-              class="block rounded px-3 py-2 transition-colors hover:text-dti-blue"
-            >
-              {item.label}
-            </a>
-          )}
-        </li>
-      ))}
+              </a>
+            )}
+          </li>
+        )
+      })}
     </ul>
 
     <div class="flex items-center gap-2">
@@ -131,9 +162,13 @@ const NATIONAL = "https://www.dti.gov.ph"
         href={NATIONAL}
         target="_blank"
         rel="noopener"
-        class="hidden items-center gap-2.5 rounded-md bg-navy px-[1.35rem] py-2.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-dti-blue xl:inline-flex"
+        class="hidden items-center gap-2 rounded-md bg-navy px-[1.35rem] py-2.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-dti-blue xl:inline-flex"
       >
         DTI National
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+          <path d={external} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="sr-only">(opens in a new tab)</span>
       </a>
       <button
         type="button"
@@ -154,66 +189,156 @@ const NATIONAL = "https://www.dti.gov.ph"
 
   <div
     id="mobile-menu"
-    class="pointer-events-auto mx-auto mt-[0.6rem] max-h-[calc(100svh-6rem)] w-[calc(100%-2rem)] max-w-[76rem] animate-[menu-in_0.3s_var(--ease-out-quint)] overflow-y-auto rounded-[10px] bg-white p-3 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_14px_34px_-14px_rgb(6_22_51/0.55)] motion-reduce:animate-none xl:hidden"
+    class="pointer-events-auto mx-auto mt-[0.6rem] max-h-[calc(100svh-6rem)] w-[calc(100%-2rem)] max-w-[76rem] overflow-y-auto overscroll-contain rounded-[10px] bg-white p-2 shadow-[0_0_0_1px_rgb(10_31_68/0.08),0_14px_34px_-14px_rgb(6_22_51/0.55)] xl:hidden"
     data-menu
     hidden
   >
-    <ul class="[&>li+li]:border-t [&>li+li]:border-navy/10">
-      {navItems.map((item) => (
-        <li>
-          <a
-            href={item.href}
-            data-menu-link={item.children ? undefined : ""}
-            class="block rounded px-3 py-[0.95rem] text-[1.05rem] font-bold tracking-[-0.005em] text-navy hover:bg-navy/5"
-          >
-            {item.label}
-          </a>
-          {item.children && (
-            <ul class="px-5 pb-[0.6rem]">
-              {item.children.map((c) => (
-                <li>
-                  <a
-                    class="block rounded px-3 py-2 text-[0.98rem] text-ink/[0.68] hover:bg-navy/5"
-                    href={c.href}
-                    data-menu-link
+    <ul>
+      {navItems.map((item, i) => {
+        const active = isActive(item)
+        const real = item.href !== "#"
+        const id = `m-sub-${i}`
+        const row =
+          "relative block flex-1 rounded-md px-3 py-2.5 text-left text-base font-semibold text-navy hover:bg-navy/5 aria-[current]:before:absolute aria-[current]:before:inset-y-3 aria-[current]:before:-left-0.5 aria-[current]:before:w-[3px] aria-[current]:before:rounded-full aria-[current]:before:bg-dti-gold aria-[current]:before:content-['']"
+        return (
+          <li style={`--i:${i}`}>
+            {item.children ? (
+              <>
+                <div class="flex items-stretch">
+                  {real ? (
+                    <a
+                      href={item.href}
+                      class={row}
+                      data-menu-link
+                      aria-current={ariaCurrent(item)}
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      class={row}
+                      data-acc
+                      aria-expanded={active ? "true" : "false"}
+                      aria-controls={id}
+                    >
+                      {item.label}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    class="group grid size-11 shrink-0 place-items-center rounded-md text-navy/70 hover:bg-navy/5"
+                    data-acc
+                    aria-expanded={active ? "true" : "false"}
+                    aria-controls={id}
+                    aria-label={`${item.label} links`}
                   >
-                    {c.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </li>
-      ))}
+                    <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true" class="transition-transform duration-300 ease-out group-aria-expanded:rotate-180 motion-reduce:transition-none">
+                      <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  id={id}
+                  class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-[var(--ease-out-quint)] data-[open]:grid-rows-[1fr] motion-reduce:transition-none"
+                  data-open={active ? "" : undefined}
+                >
+                  <ul class="overflow-hidden px-4" inert={!active}>
+                    {item.children.map((c) => (
+                      <li>
+                        <a
+                          class="block rounded-md px-3 py-2 text-[0.95rem] text-ink/[0.68] hover:bg-navy/5 aria-[current=page]:font-semibold aria-[current=page]:text-navy"
+                          href={c.href}
+                          data-menu-link
+                          aria-current={isCurrent(c.href) ? "page" : undefined}
+                        >
+                          {c.label}
+                        </a>
+                      </li>
+                    ))}
+                    <li class="h-2" aria-hidden="true"></li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <a
+                href={item.href}
+                data-menu-link
+                class={row}
+                aria-current={ariaCurrent(item)}
+              >
+                {item.label}
+              </a>
+            )}
+          </li>
+        )
+      })}
     </ul>
     <a
       href={NATIONAL}
       target="_blank"
       rel="noopener"
-      class="mt-4 flex w-full items-center justify-center gap-2.5 rounded-md bg-navy px-[1.35rem] py-[0.85rem] font-semibold text-white transition-colors hover:bg-dti-blue"
+      class="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-dti-blue"
     >
       DTI National
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+        <path d={external} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span class="sr-only">(opens in a new tab)</span>
     </a>
   </div>
 </header>
 
 <script>
+  const root = document.documentElement
   const wrap = document.querySelector<HTMLElement>("[data-nav]")
   const btn = document.querySelector<HTMLButtonElement>("[data-menu-btn]")
   const panel = document.querySelector<HTMLElement>("[data-menu]")
+  const scrim = document.querySelector<HTMLElement>("[data-menu-scrim]")
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
+  // ---- Phone menu: animated open/close, soft backdrop, page behind does not scroll
+  const isOpen = () => btn?.getAttribute("aria-expanded") === "true"
+  let closing: number | undefined
   const setOpen = (open: boolean) => {
     if (!btn || !panel) return
-    panel.hidden = !open
+    window.clearTimeout(closing)
     btn.setAttribute("aria-expanded", String(open))
     btn.setAttribute("aria-label", open ? "Close menu" : "Open menu")
+    scrim?.toggleAttribute("data-open", open)
+    root.style.overflow = open ? "hidden" : ""
+    if (open) {
+      panel.hidden = false
+      void panel.offsetWidth // let the closed state paint first, so the open state animates
+      panel.setAttribute("data-open", "")
+    } else {
+      panel.removeAttribute("data-open")
+      if (calm) panel.hidden = true
+      else closing = window.setTimeout(() => (panel.hidden = true), 200)
+    }
   }
-  btn?.addEventListener("click", () => setOpen(panel?.hidden ?? false))
+  btn?.addEventListener("click", () => setOpen(!isOpen()))
+  scrim?.addEventListener("click", () => setOpen(false))
   panel
     ?.querySelectorAll("[data-menu-link]")
     .forEach((a) => a.addEventListener("click", () => setOpen(false)))
 
-  // Desktop dropdowns also open by click/tap (touch laptops), close on Esc or outside click
+  // Sections in the phone menu open and close like an accordion
+  panel?.querySelectorAll<HTMLButtonElement>("[data-acc]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const id = b.getAttribute("aria-controls")
+      const region = id ? document.getElementById(id) : null
+      if (!region) return
+      const open = b.getAttribute("aria-expanded") !== "true"
+      panel
+        .querySelectorAll(`[data-acc][aria-controls="${id}"]`)
+        .forEach((x) => x.setAttribute("aria-expanded", String(open)))
+      region.toggleAttribute("data-open", open)
+      ;(region.firstElementChild as HTMLElement | null)?.toggleAttribute("inert", !open)
+    })
+  )
+
+  // ---- Desktop dropdowns also open by click/tap (touch laptops), close on Esc or outside click
   const drops = Array.from(
     document.querySelectorAll<HTMLButtonElement>("[data-drop]")
   )
@@ -235,7 +360,7 @@ const NATIONAL = "https://www.dti.gov.ph"
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return
     closeDrops()
-    if (panel && !panel.hidden) {
+    if (isOpen()) {
       setOpen(false)
       btn?.focus()
     }
@@ -244,10 +369,23 @@ const NATIONAL = "https://www.dti.gov.ph"
     const t = e.target as Node
     if (!wrap?.contains(t)) {
       closeDrops()
-      if (panel && !panel.hidden) setOpen(false)
+      if (isOpen()) setOpen(false)
     }
   })
   window
     .matchMedia("(min-width: 1280px)")
     .addEventListener("change", (e) => e.matches && setOpen(false))
+
+  // ---- The bar tightens slightly once the page has been scrolled
+  let ticking = false
+  const onScroll = () => {
+    if (ticking) return
+    ticking = true
+    requestAnimationFrame(() => {
+      wrap?.toggleAttribute("data-scrolled", window.scrollY > 12)
+      ticking = false
+    })
+  }
+  window.addEventListener("scroll", onScroll, { passive: true })
+  onScroll()
 </script>

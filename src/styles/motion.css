@@ -1,0 +1,82 @@
+/*
+ * Small, quick motion for the accomplishment lists. Nothing runs longer than half a second,
+ * and all of it is switched off for visitors who prefer reduced motion.
+ */
+
+/* Cards that appear after a search, a filter or "Show more": fade up, one after another.
+   PostList.astro sets the class and the delay (--d). */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.card-in {
+  animation: card-in 0.4s var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Cards below the first screen ease in as they are scrolled to (PostList.astro marks them). */
+[data-reveal] {
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s var(--ease-out-quint);
+}
+[data-reveal]:not(.in) {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* ---- Menu bar ---------------------------------------------------------------------------------
+   Phone-menu rows fade up one after another (--i is the row's position, set in Nav.astro) and leave
+   faster than they arrive. The desktop dropdown animates only as a whole panel (see Nav.astro). */
+[data-menu] > ul > li {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+[data-menu][data-open] > ul > li {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.22s ease calc(var(--i, 0) * 25ms + 40ms),
+    transform 0.22s var(--ease-out-quint) calc(var(--i, 0) * 25ms + 40ms);
+}
+/* the phone menu itself: drops in from just above the bar */
+[data-menu] {
+  opacity: 0;
+  transform: translateY(-8px);
+  transform-origin: top;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+[data-menu][data-open] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.3s var(--ease-out-quint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-menu] > ul > li,
+  [data-menu],
+  [data-menu][data-open],
+  [data-menu][data-open] > ul > li {
+    transition: none;
+    transform: none;
+  }
+  .card-in {
+    animation: none;
+  }
+  [data-reveal] {
+    transition: none;
+  }
+  [data-reveal]:not(.in) {
+    opacity: 1;
+    transform: none;
+  }
+}

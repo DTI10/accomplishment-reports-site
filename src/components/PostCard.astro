@@ -41,13 +41,15 @@ const month = `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 <a href={href} class="group block">
   <div class="relative">
     {image ? (
-      <img
-        src={image}
-        alt=""
-        loading="lazy"
-        style={photoVt}
-        class="aspect-[3/2] w-full rounded-md object-cover"
-      />
+      <div class="overflow-hidden rounded-md">
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          style={photoVt}
+          class="aspect-[3/2] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        />
+      </div>
     ) : (
       <div
         class="aspect-[3/2] w-full rounded-md bg-mist-deep bg-[url('/brand/dti-rapid.png')] bg-[length:auto_46%] bg-center bg-no-repeat"
@@ -56,7 +58,7 @@ const month = `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
     )}
     <time
       datetime={iso}
-      class="absolute bottom-[-1.75rem] left-4 flex min-w-16 flex-col items-center rounded-[3px] border-t-[3px] border-dti-gold bg-navy px-[0.7rem] pt-[0.55rem] pb-2 leading-none text-mist shadow-[0_0_0_3px_var(--color-mist),0_10px_20px_-10px_rgb(6_22_51/0.6)]"
+      class="absolute bottom-[-1.75rem] left-4 flex transition-transform duration-300 ease-out group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 min-w-16 flex-col items-center rounded-[3px] border-t-[3px] border-dti-gold bg-navy px-[0.7rem] pt-[0.55rem] pb-2 leading-none text-mist shadow-[0_0_0_3px_var(--color-mist),0_10px_20px_-10px_rgb(6_22_51/0.6)]"
     >
       <span class="font-display text-[1.7rem] font-bold font-stretch-[100%] tracking-[-0.01em]">
         {day}
@@ -73,7 +75,7 @@ const month = `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
         <span class="text-dti-blue"> · {provinces.join(", ")}</span>
       )}
     </p>
-    <h3 style={titleVt} class="line-clamp-3 text-xl leading-snug font-semibold tracking-tight text-navy decoration-navy decoration-1 underline-offset-4 group-hover:underline group-focus-visible:underline">
+    <h3 style={titleVt} class="line-clamp-3 text-xl leading-snug font-semibold tracking-tight text-navy underline decoration-transparent decoration-1 underline-offset-4 transition-[text-decoration-color] duration-300 group-hover:decoration-navy group-focus-visible:decoration-navy">
       {title}
     </h3>
     {summary && (

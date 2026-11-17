@@ -18,12 +18,23 @@ const { office } = Astro.props
 const entry = (await getCollection("offices")).find((e) => e.id === office.slug)
 const name = entry?.data.name ?? office.province
 
+const allPosts = await getPublishedPosts("articles")
+
 // Every post whose Province / Office matches this page, newest first
-const posts = (await getPublishedPosts("articles")).filter(
+const posts = allPosts.filter(
   (post) => getProvinces(post.data)[0] === office.province
 )
 
-const others = OFFICES.filter((o) => o.slug !== office.slug)
+// The "Browse by office" band: every office with how many accomplishments it has
+const counts = new Map<string, number>()
+for (const post of allPosts) {
+  const province = getProvinces(post.data)[0]
+  if (province) counts.set(province, (counts.get(province) ?? 0) + 1)
+}
+const countLabel = (province: string) => {
+  const n = counts.get(province) ?? 0
+  return n === 0 ? "No posts yet" : `${n} ${n === 1 ? "accomplishment" : "accomplishments"}`
+}
 ---
 
 <BaseLayout
@@ -62,21 +73,57 @@ const others = OFFICES.filter((o) => o.slug !== office.slug)
     </div>
   </section>
 
-  <nav class="bg-mist-deep/60" aria-label="Other offices">
+  <nav class="bg-mist-deep/60" aria-label="Offices">
     <div class="shell py-14 sm:py-16">
-      <h2 class="display text-[clamp(1.5rem,2.6vw,2rem)] text-navy">Other offices</h2>
-      <ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {others.map((o) => (
-          <li>
-            <a
-              href={officeHref(o.slug)}
-              class="group flex items-center justify-between rounded-md border border-navy/15 bg-white px-5 py-4 font-semibold text-navy transition-colors hover:border-navy"
-            >
-              {o.province}
-              <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span>
-            </a>
-          </li>
-        ))}
+      <p class="text-[0.7rem] font-semibold tracking-[0.18em] text-ink/55 uppercase">
+        Browse by province
+      </p>
+      <h2 class="display mt-2 text-[clamp(1.5rem,2.6vw,2rem)] text-navy">Offices of Region 10</h2>
+      <ul class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        {OFFICES.map((o) => {
+          const current = o.slug === office.slug
+          const tile =
+            "flex h-full min-h-[4.5rem] flex-col justify-center rounded-md px-4 py-3 sm:px-5 sm:py-4"
+          return (
+            <li>
+              {current ? (
+                <span aria-current="page" class:list={[tile, "bg-navy text-white"]}>
+                  <span class="font-semibold">{o.province}</span>
+                  <span class="mt-0.5 text-sm text-mist/70">You are here</span>
+                </span>
+              ) : (
+                <a
+                  href={officeHref(o.slug)}
+                  class:list={[
+                    tile,
+                    "group border border-navy/12 bg-white transition-[border-color,box-shadow] duration-200 hover:border-navy/30 hover:shadow-[inset_0_2px_0_var(--color-dti-gold)] focus-visible:shadow-[inset_0_2px_0_var(--color-dti-gold)]"
+                  ]}
+                >
+                  <span class="flex items-center gap-2 font-semibold text-navy">
+                    {o.province}
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                      class="shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                    >
+                      <path
+                        d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span class="mt-0.5 text-sm text-ink/60">{countLabel(o.province)}</span>
+                </a>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   </nav>

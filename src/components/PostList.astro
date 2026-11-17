@@ -1,5 +1,12 @@
 ---
-import { getProvinces, getSummary, PROVINCES, type Post } from "../lib/content"
+import {
+  formatPostDate,
+  getPostHref,
+  getProvinces,
+  getSummary,
+  PROVINCES,
+  type Post
+} from "../lib/content"
 import PostCard from "./PostCard.astro"
 
 interface Props {
@@ -14,6 +21,10 @@ interface Props {
   showFilters?: boolean
   /** Name each card's photo and title for the page transition into the story page. Only on pages where no other element shows the same post (the home hero does). */
   morph?: boolean
+  /** Show the newest post as one large card above the grid (only while no search or filter is active). */
+  lead?: boolean
+  /** Replace the office dropdown with a row of chips, one per office, with post counts. */
+  chips?: boolean
 }
 
 const {
@@ -23,7 +34,9 @@ const {
   idPrefix = "post",
   hideProvince = false,
   showFilters = true,
-  morph = false
+  morph = false,
+  lead = false,
+  chips = false
 } = Astro.props
 
 // One row per post, with the values the filters and the search use
@@ -50,30 +63,59 @@ const provinces = PROVINCES.filter((name) =>
   rows.some((row) => row.province === name)
 )
 const years = [...new Set(rows.map((row) => row.year))].sort().reverse()
+const countFor = (name: string) => rows.filter((row) => row.province === name).length
 
+const chipsOn = chips && !hideProvince && showFilters && provinces.length > 1
+
+// The lead story is the newest post (posts arrive newest first); its normal card stays in the grid, hidden
+// until a search or filter is active, so it can still match.
+const leadRow = lead && rows.length > 1 ? rows[0] : undefined
+const leadImage = leadRow?.post.data.image || undefined
+const leadId = leadRow ? `${leadRow.post.collection}-${leadRow.post.id}` : ""
+const leadPhotoVt = morph && leadRow ? `view-transition-name: sp-${leadId}; view-transition-class: story-photo;` : undefined
+const leadTitleVt = morph && leadRow ? `view-transition-name: st-${leadId}; view-transition-class: story-title;` : undefined
+
+const chip =
+  "inline-flex h-9 items-center gap-2 rounded-md border border-navy/15 bg-white px-3.5 text-sm font-medium text-navy shadow-xs outline-none transition-colors hover:border-navy/30 focus-visible:ring-[3px] focus-visible:ring-navy/15 aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white"
+
+// Field styling follows the shadcn/ui Input and Select: 40px tall, 6px corners, a hairline border, a faint shadow
+// and a soft ring on focus.
 const field =
-  "h-11 w-full rounded-[6px] border border-navy/20 bg-white px-3.5 text-[0.95rem] text-navy transition-colors placeholder:text-ink/45 hover:border-navy/40 focus-visible:border-navy"
+  "h-10 w-full rounded-md border border-navy/15 bg-white px-3 text-sm text-navy shadow-xs outline-none transition-[color,box-shadow,border-color] placeholder:text-ink/45 hover:border-navy/30 focus-visible:border-navy/60 focus-visible:ring-[3px] focus-visible:ring-navy/15 focus-visible:outline-none"
+const select = `${field} cursor-pointer appearance-none pr-9`
 ---
 
 <div data-posts data-page={pageSize}>
+  {chipsOn && (
+    <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filter by office" data-chips>
+      <button type="button" class={chip} data-chip data-value="" aria-pressed="true">
+        All
+        <span class="text-xs tabular-nums opacity-60">{rows.length}</span>
+      </button>
+      {provinces.map((name) => (
+        <button type="button" class={chip} data-chip data-value={name} aria-pressed="false">
+          {name}
+          <span class="text-xs tabular-nums opacity-60">{countFor(name)}</span>
+        </button>
+      ))}
+    </div>
+  )}
+
   {posts.length > 0 && showFilters && (
     <form
-      class:list={[
-        "mb-12 grid gap-3 sm:grid-cols-2",
-        hideProvince ? "lg:grid-cols-[1fr_9rem_auto]" : "lg:grid-cols-[1fr_16rem_9rem_auto]"
-      ]}
+      class="mb-12 grid grid-cols-2 gap-2 lg:flex"
       role="search"
       aria-label="Filter stories"
       data-form
     >
-      <div class="relative sm:col-span-2 lg:col-span-1">
+      <div class="relative col-span-2 lg:flex-1">
         <label class="sr-only" for={`${idPrefix}-search`}>Search</label>
         <svg
           viewBox="0 0 24 24"
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           aria-hidden="true"
-          class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink/45"
+          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-navy/50"
         >
           <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2" />
           <path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -84,35 +126,46 @@ const field =
           data-q
           placeholder="Search by title, topic or place"
           autocomplete="off"
-          class:list={[field, "pl-10"]}
+          class:list={[field, "pl-9 [&::-webkit-search-cancel-button]:appearance-none"]}
         />
       </div>
 
-      {!hideProvince && (
-        <div>
+      {chipsOn && <input type="hidden" data-filter-province value="" />}
+
+      {!hideProvince && !chipsOn && (
+        <div class="relative lg:w-60">
           <label class="sr-only" for={`${idPrefix}-province`}>Province or office</label>
-          <select id={`${idPrefix}-province`} data-filter-province class={field}>
-            <option value="">All provinces / offices</option>
+          <select id={`${idPrefix}-province`} data-filter-province class={select}>
+            <option value="">All offices</option>
             {provinces.map((name) => <option value={name}>{name}</option>)}
           </select>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-navy/50">
+            <path d="M5 6.5 8 3.5l3 3M5 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
       )}
 
-      <div>
+      <div class:list={["relative lg:w-40", (hideProvince || chipsOn) && "col-span-2"]}>
         <label class="sr-only" for={`${idPrefix}-year`}>Year</label>
-        <select id={`${idPrefix}-year`} data-filter-year class={field}>
+        <select id={`${idPrefix}-year`} data-filter-year class={select}>
           <option value="">All years</option>
           {years.map((year) => <option value={year}>{year}</option>)}
         </select>
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-navy/50">
+          <path d="M5 6.5 8 3.5l3 3M5 9.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       </div>
 
       <button
         type="button"
         data-clear
         hidden
-        class="h-11 rounded-[6px] px-4 text-sm font-semibold text-navy underline decoration-navy/40 underline-offset-4 hover:decoration-navy"
+        class="col-span-2 inline-flex h-10 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium text-navy transition-colors outline-none hover:bg-navy/6 focus-visible:ring-[3px] focus-visible:ring-navy/15 [&[hidden]]:hidden"
       >
-        Clear filters
+        Reset
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+          <path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
       </button>
     </form>
   )}
@@ -122,17 +175,74 @@ const field =
       {emptyMessage}
     </p>
   ) : (
-    <ul class="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-list>
-      {rows.map((row) => (
-        <li
-          data-province={row.province}
-          data-year={row.year}
-          data-search={row.search}
-        >
-          <PostCard post={row.post} morph={morph} />
-        </li>
-      ))}
-    </ul>
+    <>
+      {leadRow && (
+        <div data-lead class="mb-14">
+          <a
+            href={getPostHref(leadRow.post)}
+            class="group grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-center lg:gap-12"
+          >
+            <div class="overflow-hidden rounded-md">
+              {leadImage ? (
+                <img
+                  src={leadImage}
+                  alt=""
+                  style={leadPhotoVt}
+                  class="aspect-[3/2] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                />
+              ) : (
+                <div
+                  class="aspect-[3/2] w-full bg-mist-deep bg-[url('/brand/dti-rapid.png')] bg-[length:auto_46%] bg-center bg-no-repeat"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+            <div>
+              <p class="mb-3 text-[0.7rem] font-semibold tracking-[0.18em] text-ink/55 uppercase">
+                Latest
+                {leadRow.province && <span class="text-dti-blue"> · {leadRow.province}</span>}
+              </p>
+              <h2
+                style={leadTitleVt}
+                class="text-[clamp(1.5rem,2.6vw,2.25rem)] leading-[1.15] font-semibold tracking-tight text-navy underline decoration-transparent decoration-1 underline-offset-[6px] transition-[text-decoration-color] duration-300 group-hover:decoration-navy group-focus-visible:decoration-navy"
+              >
+                {leadRow.post.data.title}
+              </h2>
+              <p class="mt-3 text-sm text-ink/60">
+                {formatPostDate(leadRow.post.data.date, "long")}
+              </p>
+              <p class="mt-4 line-clamp-4 text-[1.02rem] leading-relaxed text-ink/70">
+                {getSummary(leadRow.post, 260)}
+              </p>
+              <span class="mt-6 inline-flex items-center gap-2 font-semibold text-navy">
+                Read more
+                <svg
+                  viewBox="0 0 16 16"
+                  width="16"
+                  height="16"
+                  aria-hidden="true"
+                  class="transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none"
+                >
+                  <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+            </div>
+          </a>
+        </div>
+      )}
+      <ul class="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3" data-list>
+        {rows.map((row, i) => (
+          <li
+            data-province={row.province}
+            data-year={row.year}
+            data-search={row.search}
+            hidden={Boolean(leadRow) && i === 0}
+          >
+            <PostCard post={row.post} morph={morph} />
+          </li>
+        ))}
+      </ul>
+    </>
   )}
 
   <p class="mt-4 rounded-md border border-dashed border-navy/25 bg-white p-10 text-center text-ink/70" data-empty hidden>
@@ -160,7 +270,10 @@ const field =
     const items = [...root.querySelectorAll<HTMLElement>("[data-list] > li")]
     const form = root.querySelector<HTMLFormElement>("[data-form]")
     const q = root.querySelector<HTMLInputElement>("[data-q]")
-    const province = root.querySelector<HTMLSelectElement>("[data-filter-province]")
+    const province = root.querySelector<HTMLSelectElement | HTMLInputElement>("[data-filter-province]")
+    const chips = [...root.querySelectorAll<HTMLButtonElement>("[data-chip]")]
+    const leadBlock = root.querySelector<HTMLElement>("[data-lead]")
+    const leadLi = leadBlock ? items[0] : null
     const year = root.querySelector<HTMLSelectElement>("[data-filter-year]")
     const clear = root.querySelector<HTMLButtonElement>("[data-clear]")
     const more = root.querySelector<HTMLButtonElement>("[data-more]")
@@ -170,9 +283,25 @@ const field =
     if (!more || !status || !empty || items.length === 0) return
 
     let limit = page
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-    const render = () => {
+    // Cards that become visible after the page has loaded fade up one after another.
+    const fadeIn = (cards: HTMLElement[]) => {
+      cards.forEach((li, i) => {
+        li.removeAttribute("data-reveal")
+        li.classList.remove("card-in")
+        li.style.setProperty("--d", `${Math.min(i, 8) * 40}ms`)
+        void li.offsetWidth // restart the animation if it is still running
+        li.classList.add("card-in")
+        li.addEventListener("animationend", () => li.classList.remove("card-in"), { once: true })
+      })
+    }
+
+    let leadShown = false
+
+    const render = (animate = true) => {
       const words = (q?.value ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean)
+      const filtering = Boolean(words.length || province?.value || year?.value)
       const matches = items.filter(
         (li) =>
           (!province?.value || li.dataset.province === province.value) &&
@@ -180,18 +309,31 @@ const field =
           words.every((word) => (li.dataset.search ?? "").includes(word))
       )
 
-      items.forEach((li) => (li.hidden = true))
-      matches.slice(0, limit).forEach((li) => (li.hidden = false))
+      // With no search or filter the newest post is the lead story, so the grid starts with the second one
+      const showLead = Boolean(leadLi) && !filtering
+      const pool = showLead ? matches.filter((li) => li !== leadLi) : matches
+      const visible = pool.slice(0, limit)
+      const arriving = visible.filter((li) => li.hidden)
+      items.forEach((li) => (li.hidden = !visible.includes(li)))
+      if (leadBlock) {
+        leadBlock.hidden = !showLead
+        if (animate && !calm && showLead && !leadShown) fadeIn([leadBlock])
+        leadShown = showLead
+      }
+      if (animate && !calm) fadeIn(arriving)
 
-      const shown = Math.min(limit, matches.length)
-      more.hidden = shown >= matches.length
-      more.textContent = `Show ${matches.length - shown} more`
+      const shown = visible.length + (showLead ? 1 : 0)
+      more.hidden = visible.length >= pool.length
+      more.textContent = `Show ${pool.length - visible.length} more`
       status.textContent = matches.length
         ? `Showing ${shown} of ${matches.length}`
         : ""
       empty.hidden = matches.length > 0
-      if (clear) clear.hidden = !(words.length || province?.value || year?.value)
-      return matches
+      if (clear) clear.hidden = !filtering
+      chips.forEach((c) =>
+        c.setAttribute("aria-pressed", String((c.dataset.value ?? "") === (province?.value ?? "")))
+      )
+      return pool
     }
 
     const reset = () => {
@@ -202,6 +344,12 @@ const field =
     q?.addEventListener("input", reset)
     province?.addEventListener("change", reset)
     year?.addEventListener("change", reset)
+    chips.forEach((c) =>
+      c.addEventListener("click", () => {
+        if (province) province.value = c.dataset.value ?? ""
+        reset()
+      })
+    )
     form?.addEventListener("submit", (event) => event.preventDefault())
 
     clear?.addEventListener("click", () => {
@@ -220,6 +368,25 @@ const field =
       matches?.[before]?.querySelector("a")?.focus()
     })
 
-    render()
+    render(false)
+
+    // Cards below the first screen ease in as they are scrolled to.
+    if (!calm && "IntersectionObserver" in window) {
+      const seen = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return
+            entry.target.classList.add("in")
+            seen.unobserve(entry.target)
+          })
+        },
+        { rootMargin: "0px 0px -8% 0px" }
+      )
+      items.forEach((li) => {
+        if (li.hidden || li.getBoundingClientRect().top < window.innerHeight) return
+        li.setAttribute("data-reveal", "")
+        seen.observe(li)
+      })
+    }
   })
 </script>
