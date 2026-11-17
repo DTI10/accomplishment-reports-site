@@ -3,10 +3,10 @@ import { getEntry, render } from "astro:content"
 import PostList from "../../components/PostList.astro"
 import BaseLayout from "../../layouts/BaseLayout.astro"
 import { getPublishedPosts } from "../../lib/content"
-import { PROGRAMS } from "../../lib/programs"
+import { getPrograms } from "../../lib/programs"
 
-export function getStaticPaths() {
-  return PROGRAMS.map((program) => ({
+export async function getStaticPaths() {
+  return (await getPrograms()).map((program) => ({
     params: { program: program.slug },
     props: { program }
   }))

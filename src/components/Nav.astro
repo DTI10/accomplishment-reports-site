@@ -1,5 +1,7 @@
 ---
-import { navItems, type NavItem } from "../lib/nav"
+import { getNavItems, type NavItem } from "../lib/nav"
+
+const navItems = await getNavItems()
 
 const NATIONAL = "https://www.dti.gov.ph"
 

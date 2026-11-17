@@ -1,5 +1,7 @@
 ---
-import { navItems } from "../lib/nav"
+import { getNavItems } from "../lib/nav"
+
+const navItems = await getNavItems()
 
 const group = (label: string) =>
   navItems.find((i) => i.label === label)?.children ?? []

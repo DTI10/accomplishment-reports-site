@@ -52,6 +52,10 @@ const programs = defineCollection({
   loader: glob({ pattern: "*.md", base: "./content/programs" }),
   schema: z.object({
     name: z.string(),
+    // Short name for the menu, the breadcrumb and the accomplishment tag (e.g. "SSF"). Defaults to the name.
+    label: z.string().optional(),
+    // Position in the Programs menu: lower numbers come first
+    order: z.number().optional(),
     tagline: z.string().optional(),
     // Optional photo behind the page's top banner (a path such as /media/ssf-banner.webp)
     banner: z.string().optional(),
