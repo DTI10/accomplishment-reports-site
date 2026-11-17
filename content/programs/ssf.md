@@ -1,5 +1,7 @@
 ---
 name: Shared Service Facilities
+label: SSF
+order: 1
 tagline: Shared machinery, equipment and skills that help MSMEs improve quality and grow.
 # Photo behind the top banner (upload to public/media, then write its path here).
 banner: /media/ssf-banner.webp
