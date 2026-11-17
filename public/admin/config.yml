@@ -23,15 +23,21 @@ public_folder: /media
 # Shrink photos in the browser before they are saved. Phone photos are often 5-10 MB each, and an entry
 # with several of them is sent to GitHub in one request that can be too large ("Failed to fetch").
 # Photos larger than 2400px are scaled down (never up) and saved as WebP, usually 300-800 KB.
+# `all` also applies the settings to external storage providers if one is added later; for the
+# internal storage it can still be overridden under `default.config`.
 media_libraries:
-  default:
-    config:
-      transformations:
-        raster_image:
-          format: webp
-          quality: 85
-          width: 2400
-          height: 2400
+  all:
+    transformations:
+      # Any supported raster format (JPEG, PNG, HEIC, AVIF, ...) becomes WebP and is capped at 2400px.
+      # Animated images are left untouched, and smaller images are never scaled up.
+      raster_image:
+        format: webp
+        quality: 85
+        width: 2400
+        height: 2400
+      # Strip comments and editor metadata from SVGs with SVGO.
+      svg:
+        optimize: true
 
 collections:
   - name: articles
