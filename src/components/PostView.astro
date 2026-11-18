@@ -14,6 +14,7 @@ import {
   type PostCollection
 } from "../lib/content"
 import { photoSide, placePhotos, renderStoryBlocks } from "../lib/storyBody"
+import { getPrograms } from "../lib/programs"
 
 interface Props {
   post: Post
@@ -26,7 +27,7 @@ const {
   image,
   author,
   photos,
-  tags
+  programs: programSlugs
 } = post.data
 
 // Story text, cleaned of pasted Word/Docs artefacts and split into blocks
@@ -75,6 +76,12 @@ const typeLabel = "Accomplishment"
 
 const summary = getSummary(post)
 const provinces = getProvinces(post.data)
+// The CMS stores program slugs in the relation; show their short names, exactly as the admin preview does.
+const allPrograms = await getPrograms()
+const programs = (programSlugs ?? []).map((slug) => {
+  const program = allPrograms.find((p) => p.slug === slug)
+  return { slug, label: program?.label ?? slug }
+})
 const formattedDate = formatPostDate(date, "long")
 const altText = altFromFilename(image, title)
 const photo = image || undefined
@@ -131,11 +138,11 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
           </h1>
 
           {
-            tags.length > 0 && (
-              <ul class="mt-6 flex flex-wrap gap-2" aria-label="Tags">
-                {tags.map((tag) => (
+            programs.length > 0 && (
+              <ul class="mt-5 flex flex-wrap gap-2" aria-label="Programs">
+                {programs.map((program) => (
                   <li class="rounded-[3px] border border-mist/20 px-2.5 py-1 text-[0.68rem] font-semibold tracking-[0.14em] text-mist/70 uppercase">
-                    {tag}
+                    {program.label}
                   </li>
                 ))}
               </ul>

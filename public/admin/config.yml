@@ -131,21 +131,16 @@ collections:
           required: true,
           hint: "Write or paste the text here (pasting from Word or Google Docs is fine; it is cleaned on save). A line that is only bold text becomes a subheading. Add photos with the photo fields above, not inside the text."
         }
-      - label: Tags
-        name: tags
-        widget: select
+      - label: Programs
+        name: programs
+        widget: relation
+        collection: programs
         multiple: true
         required: false
-        hint: Short topic labels used by the archive filters.
-        options:
-          - Trade
-          - MSMEs
-          - Consumer
-          - Advisories
-          - Programs
-          - Events
-          - Awards
-          - Financing
+        value_field: "{{slug}}"
+        display_fields: ["{{label}} — {{name}}"]
+        search_fields: [label, name]
+        hint: "Pick the program or programs this accomplishment belongs to. It then appears on each selected program's page. Leave empty if the story is not tied to a program."
 
   # Program pages such as SSF and RAPID (content/programs/<name>.md). Every entry gets its own page at
   # /programs/<name>/ and its own link in the Programs menu, so programs can be added, edited and deleted here.

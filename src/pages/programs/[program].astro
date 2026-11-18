@@ -24,9 +24,9 @@ const dashboard = entry?.data.dashboard
 const dashboardPage = dashboard?.replace("/embed/reporting/", "/reporting/")
 const Content = entry ? (await render(entry)).Content : null
 
-// Accomplishments tagged with this program's name (add the tag "SSF" or "RAPID" in the CMS)
+// Accomplishments that selected this program in the CMS (the relation stores the program slug)
 const related = (await getPublishedPosts("articles")).filter((post) =>
-  post.data.tags.includes(program.label)
+  (post.data.programs ?? []).includes(program.slug)
 )
 ---
 
