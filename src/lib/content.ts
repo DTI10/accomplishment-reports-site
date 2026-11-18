@@ -38,9 +38,9 @@ export const PROVINCES = [
 	'Misamis Oriental',
 ] as const;
 
-/** Provinces for a post: the Province field, plus any tag that names a province. */
-export const getProvinces = (data: { province?: string | string[]; tags?: string[] }) => {
-	const names = [...[data.province ?? []].flat(), ...(data.tags ?? [])].map((n) => n.trim().toLowerCase());
+/** Provinces for a post: the Province field. */
+export const getProvinces = (data: { province?: string | string[] }) => {
+	const names = [...[data.province ?? []].flat()].map((n) => n.trim().toLowerCase());
 	return PROVINCES.filter((p) => names.includes(p.toLowerCase()));
 };
 

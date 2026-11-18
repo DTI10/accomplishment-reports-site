@@ -24,7 +24,8 @@ const postSchema = z.object({
     .union([z.string(), z.array(z.string())])
     .optional()
     .transform((value) => (Array.isArray(value) ? value[0] : value)),
-  tags: z.array(z.string()).optional().default([]),
+  // Programs this accomplishment belongs to, stored as program slugs by the CMS relation field.
+  programs: z.array(z.string()).optional().default([]),
 });
 
 const articles = defineCollection({

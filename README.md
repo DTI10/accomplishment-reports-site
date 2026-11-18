@@ -8,6 +8,7 @@ An Astro site that renders accomplishments authored through Sveltia CMS.
 | :---------------------- | :----------------- | :--------------------------- |
 | Accomplishments         | `content/articles` | `/articles/<slug>/`          |
 | Province / Office pages | `content/offices`  | `/accomplishments/<office>/` |
+| Programs                | `content/programs` | `/programs/<slug>/`          |
 
 The list of all accomplishments is at `/accomplishments/`. Each Province / Office
 page (`/accomplishments/<office>/`) lists every accomplishment whose
@@ -21,11 +22,11 @@ Accomplishments support this frontmatter:
 | :--------- | :------- | :------------------------------------------------------------------------------------------------------ |
 | `title`    | yes      | Post title.                                                                                             |
 | `date`     | yes      | Publication date (`YYYY-MM-DD`).                                                                        |
-| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.        |
+| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.          |
 | `image`    | no       | Main photo path, e.g. `/media/photo.jpg`. Its alt text comes from the file name.                        |
 | `photos`   | no       | Up to 4 `{ image, caption, size, side, after }` photos placed inside the text.                          |
 | `author`   | no       | Author name, shown under the text.                                                                      |
-| `tags`     | no       | List of topic labels.                                                                                   |
+| `programs` | no       | Programs this accomplishment belongs to (relation to `content/programs`).                              |
 
 The Markdown `body` is required and is rendered on the post page. The first
 paragraph is used as the summary on cards and in link previews. Uploaded media
@@ -35,8 +36,9 @@ Select-field options are defined in `public/admin/config.yml`:
 
 - **Province / Office:** Regional Office, Bukidnon, Camiguin, Lanao del Norte,
   Misamis Occidental, Misamis Oriental.
-- **Tags:** Trade, MSMEs, Consumer, Advisories, Programs, Events, Awards,
-  Financing.
+- **Programs:** a relation to the Programs collection, so the choices always
+  match the program pages (currently SSF and RAPID). An accomplishment appears
+  on every program page it is linked to.
 
 ## CMS accounts and roles
 

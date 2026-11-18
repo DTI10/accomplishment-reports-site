@@ -8,6 +8,7 @@ import {
   type Post
 } from "../lib/content"
 import PostCard from "./PostCard.astro"
+import { getPrograms } from "../lib/programs"
 
 interface Props {
   posts: Post[]
@@ -39,6 +40,9 @@ const {
   chips = false
 } = Astro.props
 
+// Program slugs are stored in the content; resolve them to the names editors see in the CMS.
+const programLabels = new Map((await getPrograms()).map((p) => [p.slug, p.label]))
+
 // One row per post, with the values the filters and the search use
 const rows = posts.map((post) => {
   const province = getProvinces(post.data)[0] ?? ""
@@ -50,7 +54,7 @@ const rows = posts.map((post) => {
       post.data.title,
       getSummary(post),
       province,
-      ...post.data.tags,
+      ...(post.data.programs ?? []).map((slug) => programLabels.get(slug) ?? slug),
       "accomplishment"
     ]
       .join(" ")
