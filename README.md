@@ -21,7 +21,7 @@ Accomplishments support this frontmatter:
 | :--------- | :------- | :------------------------------------------------------------------------------------------------------ |
 | `title`    | yes      | Post title.                                                                                             |
 | `date`     | yes      | Publication date (`YYYY-MM-DD`).                                                                        |
-| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.        |
+| `province` | no       | One province/office, shown as a location badge. Decides which office page the post appears on.          |
 | `image`    | no       | Main photo path, e.g. `/media/photo.jpg`. Its alt text comes from the file name.                        |
 | `photos`   | no       | Up to 4 `{ image, caption, size, side, after }` photos placed inside the text.                          |
 | `author`   | no       | Author name, shown under the text.                                                                      |
