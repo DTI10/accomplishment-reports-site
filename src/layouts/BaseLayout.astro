@@ -10,6 +10,8 @@ interface Props {
 	image?: string;
 	/** Home page: the first section is a full-bleed hero that sits under the floating menu bar. */
 	hero?: boolean;
+	/** Hide the footer (used by the 404 page). */
+	hideFooter?: boolean;
 }
 
 const {
@@ -17,6 +19,7 @@ const {
 	description = 'Official accomplishment report of the Department of Trade and Industry, Region 10 (Northern Mindanao).',
 	image,
 	hero = false,
+	hideFooter = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
@@ -69,7 +72,7 @@ const pageTitle = title.includes('DTI') ? title : `${title} · DTI Region 10`;
 		<main id="main" class:list={{ 'pt-32': !hero }}>
 			<slot />
 		</main>
-		<Footer />
+		{!hideFooter && <Footer />}
 		<BackToTop />
 	</body>
 </html>
