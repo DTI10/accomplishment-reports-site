@@ -10,7 +10,8 @@ export const getPrograms = async () => {
     .map((entry) => ({
       slug: entry.id,
       // short name for the menu, the breadcrumb and the tag that links accomplishments to the program
-      label: entry.data.label ?? entry.data.name,
+      // an empty "Short name" box counts as not filled in
+      label: entry.data.label?.trim() || entry.data.name,
       order: entry.data.order ?? 100,
     }))
     .sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
