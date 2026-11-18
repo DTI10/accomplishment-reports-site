@@ -24,7 +24,8 @@ const postSchema = z.object({
     .union([z.string(), z.array(z.string())])
     .optional()
     .transform((value) => (Array.isArray(value) ? value[0] : value)),
-  tags: z.array(z.string()).optional().default([]),
+  // Programs this accomplishment belongs to, stored as program slugs by the CMS relation field.
+  programs: z.array(z.string()).optional().default([]),
 });
 
 const articles = defineCollection({
@@ -59,8 +60,12 @@ const programs = defineCollection({
     tagline: z.string().optional(),
     // Optional photo behind the page's top banner (a path such as /media/ssf-banner.webp)
     banner: z.string().optional(),
-    // Optional Looker Studio (Google Data Studio) report shown under the stat cards: paste its embed address
-    dashboard: z.url().optional(),
+    // Optional Looker Studio (Google Data Studio) report shown under the stat cards: paste its embed address.
+    // The CMS saves an explicitly cleared field as "", so accept that and treat it as "no dashboard".
+    dashboard: z
+      .union([z.url(), z.literal("")])
+      .nullish()
+      .transform((value) => value || undefined),
     // Up to four figures shown as cards under the "About" text
     stats: z
       .array(

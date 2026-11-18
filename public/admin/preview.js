@@ -101,7 +101,14 @@
 		if (isNaN(d)) return esc(v);
 		return d.toLocaleDateString('en-PH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 	}
-	function buildHtml(d, getAsset, typeLabel) {
+	function programLabel(fieldsMetaData, slug) {
+		var meta = fieldsMetaData && fieldsMetaData.getIn
+			? fieldsMetaData.getIn(['programs', 'programs', slug])
+			: null;
+		var data = meta && typeof meta.toJS === 'function' ? meta.toJS() : meta;
+		return (data && (data.label || data.name)) || slug;
+	}
+	function buildHtml(d, getAsset, typeLabel, fieldsMetaData) {
 		var photos = list(d.photos)
 			.filter(function (p) {
 				return p && p.image;
@@ -128,7 +135,7 @@
 		});
 
 		var provinces = list(d.province);
-		var tags = list(d.tags);
+		var programs = list(d.programs);
 		var badges =
 			'<span class="badge">' + esc(typeLabel) + '</span>' +
 			provinces.map(function (p) { return '<span class="badge badge--outline">' + esc(p) + '</span>'; }).join('');
@@ -137,7 +144,7 @@
 			'<header class="post-head"><div class="wrap head-grid"><div>' +
 			'<div class="badges">' + badges + '</div>' +
 			'<h1 class="post-title">' + esc(d.title) + '</h1>' +
-			(tags.length ? '<ul class="tag-list">' + tags.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') +
+			(programs.length ? '<ul class="tag-list">' + programs.map(function (slug) { return '<li>' + esc(programLabel(fieldsMetaData, slug)) + '</li>'; }).join('') + '</ul>' : '') +
 			'</div>' +
 			'<div><div class="photo-notch">' +
 			(d.image ? '<img class="photo" src="' + esc(assetUrl(getAsset, d.image)) + '" alt="">' : '<div class="photo placeholder">Cover image</div>') +
@@ -154,7 +161,7 @@
 		return createClass({
 			render: function () {
 				var d = toJS(this.props.entry.get('data')) || {};
-				var html = buildHtml(d, this.props.getAsset, typeLabel);
+				var html = buildHtml(d, this.props.getAsset, typeLabel, this.props.fieldsMetaData);
 				return h('div', { className: 'post-preview', dangerouslySetInnerHTML: { __html: html } });
 			},
 		});
