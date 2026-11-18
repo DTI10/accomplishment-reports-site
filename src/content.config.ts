@@ -56,15 +56,15 @@ const programs = defineCollection({
     // Short name for the menu, the breadcrumb and the accomplishment tag (e.g. "SSF"). Defaults to the name.
     label: z.string().optional(),
     // Position in the Programs menu: lower numbers come first
-    order: z.number().optional(),
+    order: z.number().nullish(),
     tagline: z.string().optional(),
     // Optional photo behind the page's top banner (a path such as /media/ssf-banner.webp)
     banner: z.string().optional(),
-    // Optional Looker Studio (Google Data Studio) report shown under the stat cards: paste its embed address.
-    // The CMS saves an explicitly cleared field as "", so accept that and treat it as "no dashboard".
+    // Optional Looker Studio (Google Data Studio) report shown under the stat cards: paste its embed address
+    // (the CMS writes an empty box as '', so that is allowed and treated as "no dashboard")
     dashboard: z
-      .union([z.url(), z.literal("")])
-      .nullish()
+      .union([z.literal(""), z.url()])
+      .optional()
       .transform((value) => value || undefined),
     // Up to four figures shown as cards under the "About" text
     stats: z
