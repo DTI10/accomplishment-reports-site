@@ -1,6 +1,6 @@
 ---
 name: Test
-label: this is short nam
+label: test program
 order: 3
 tagline: this is line under the title
 banner: /media/camiguin2.webp
