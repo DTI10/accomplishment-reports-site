@@ -14,7 +14,7 @@ import {
   type PostCollection
 } from "../lib/content"
 import { photoSide, placePhotos, renderStoryBlocks } from "../lib/storyBody"
-import { getPrograms, programHref } from "../lib/programs"
+import { getPrograms } from "../lib/programs"
 
 interface Props {
   post: Post
@@ -76,11 +76,11 @@ const typeLabel = "Accomplishment"
 
 const summary = getSummary(post)
 const provinces = getProvinces(post.data)
-// The CMS stores program slugs in the relation; show their short names and link to their pages.
+// The CMS stores program slugs in the relation; show their short names, exactly as the admin preview does.
 const allPrograms = await getPrograms()
 const programs = (programSlugs ?? []).map((slug) => {
   const program = allPrograms.find((p) => p.slug === slug)
-  return { slug, label: program?.label ?? slug, href: programHref(slug) }
+  return { slug, label: program?.label ?? slug }
 })
 const formattedDate = formatPostDate(date, "long")
 const altText = altFromFilename(image, title)
@@ -139,15 +139,10 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
 
           {
             programs.length > 0 && (
-              <ul class="mt-6 flex flex-wrap gap-2" aria-label="Programs">
+              <ul class="mt-5 flex flex-wrap gap-2" aria-label="Programs">
                 {programs.map((program) => (
-                  <li>
-                    <a
-                      href={program.href}
-                      class="rounded-[3px] border border-mist/20 px-2.5 py-1 text-[0.68rem] font-semibold tracking-[0.14em] text-mist/70 uppercase transition-colors hover:border-mist/50 hover:text-white"
-                    >
-                      {program.label}
-                    </a>
+                  <li class="rounded-[3px] border border-mist/20 px-2.5 py-1 text-[0.68rem] font-semibold tracking-[0.14em] text-mist/70 uppercase">
+                    {program.label}
                   </li>
                 ))}
               </ul>
