@@ -3,20 +3,21 @@ name: RAPID Growth Project
 label: RAPID
 order: 2
 tagline: The DTI–IFAD project strengthening agro-enterprise development in rural Northern Mindanao.
-# Figures are project-wide (all 7 regions), as published on dtirapid.ph.
+banner: /media/Untitled design.webp
 stats:
-  - value: "84,711"
-    label: Smallholder farmers reached
+  - label: Smallholder farmers reached
+    value: '84,711'
     note: Project-wide, as of 30 September 2026
-  - value: "876"
-    label: Farmer organizations
+  - label: Farmer organizations
+    value: '876'
     note: Project-wide, as of 30 September 2026
-  - value: "1,049"
-    label: MSMEs supported
+  - label: MSMEs supported
+    value: '1,049'
     note: Project-wide, as of 30 September 2026
-  - value: "₱431.5M"
-    label: Investments delivered to beneficiaries
+  - label: Investments delivered to beneficiaries
+    value: ₱431.5M
     note: Project-wide, as of 30 September 2026
+dashboard: ''
 ---
 
 The Rural Agro-enterprise Partnership for Inclusive Development and Growth (RAPID Growth) Project is a flagship initiative of the Department of Trade and Industry (DTI) funded by the International Fund for Agricultural Development (IFAD) that aims to strengthen agro-enterprise development in rural communities across the Philippines.
