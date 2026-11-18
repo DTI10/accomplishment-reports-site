@@ -14,7 +14,7 @@ import {
   type PostCollection
 } from "../lib/content"
 import { photoSide, placePhotos, renderStoryBlocks } from "../lib/storyBody"
-import { getPrograms } from "../lib/programs"
+import { getPrograms, programHref } from "../lib/programs"
 
 interface Props {
   post: Post
@@ -76,11 +76,11 @@ const typeLabel = "Accomplishment"
 
 const summary = getSummary(post)
 const provinces = getProvinces(post.data)
-// The CMS stores program slugs in the relation; show their short names, exactly as the admin preview does.
+// The CMS stores program slugs in the relation. Shown under the title as "Part of <program>", linked to its page.
 const allPrograms = await getPrograms()
 const programs = (programSlugs ?? []).map((slug) => {
   const program = allPrograms.find((p) => p.slug === slug)
-  return { slug, label: program?.label ?? slug }
+  return { slug, name: program?.name ?? slug, exists: Boolean(program) }
 })
 const formattedDate = formatPostDate(date, "long")
 const altText = altFromFilename(image, title)
@@ -139,13 +139,33 @@ const wrap = "mx-auto w-full max-w-[70rem] px-4 sm:px-8"
 
           {
             programs.length > 0 && (
-              <ul class="mt-5 flex flex-wrap gap-2" aria-label="Programs">
-                {programs.map((program) => (
-                  <li class="rounded-[3px] border border-mist/20 px-2.5 py-1 text-[0.68rem] font-semibold tracking-[0.14em] text-mist/70 uppercase">
-                    {program.label}
-                  </li>
+              <p class="mt-5 text-[0.95rem] leading-relaxed text-mist/70">
+                Part of{" "}
+                {programs.map((program, i) => (
+                  <>
+                    {i > 0 && (i === programs.length - 1 ? " and " : ", ")}
+                    {program.exists ? (
+                      <a
+                        href={programHref(program.slug)}
+                        class="group/program inline-flex items-center gap-1 font-semibold text-white underline decoration-dti-gold/70 decoration-1 underline-offset-4 transition-colors hover:decoration-dti-gold"
+                      >
+                        {program.name}
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="14"
+                          height="14"
+                          aria-hidden="true"
+                          class="text-dti-gold transition-transform duration-200 group-hover/program:translate-x-0.5 motion-reduce:transition-none"
+                        >
+                          <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </a>
+                    ) : (
+                      <span class="font-semibold text-white">{program.name}</span>
+                    )}
+                  </>
                 ))}
-              </ul>
+              </p>
             )
           }
         </div>

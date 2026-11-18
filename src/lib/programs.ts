@@ -9,6 +9,8 @@ export const getPrograms = async () => {
   return entries
     .map((entry) => ({
       slug: entry.id,
+      // the full page title, e.g. "RAPID Growth Project"
+      name: entry.data.name,
       // short name for the menu, the breadcrumb and the tag that links accomplishments to the program
       // an empty "Short name" box counts as not filled in
       label: entry.data.label?.trim() || entry.data.name,
