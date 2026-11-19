@@ -33,6 +33,7 @@ export const getNavItems = async (): Promise<NavItem[]> => {
 					},
 				]
 			: []),
+		{ label: 'Dashboard', href: '/dashboard/' },
 		{
 			label: 'Resources',
 			href: '#',

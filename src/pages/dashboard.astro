@@ -1,0 +1,38 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro"
+import Dashboard from "../components/dashboard/Dashboard"
+import { getDashboardData } from "../lib/dashboard"
+
+const data = await getDashboardData()
+---
+
+<BaseLayout
+  hero
+  title="Dashboard"
+  description="Accomplishments posted by the DTI Region 10 offices, by year, month, office and program."
+>
+  <header class="post-head text-mist">
+    <div class="shell pt-32 pb-14 sm:pt-40 sm:pb-16">
+      <p class="mb-4 text-[0.78rem] font-semibold tracking-[0.18em] text-dti-gold uppercase">
+        DTI Region 10
+      </p>
+      <h1 class="display max-w-3xl text-[clamp(2.2rem,5vw,3.8rem)] text-white">Dashboard</h1>
+      <p class="mt-5 max-w-2xl text-lg text-mist/80">
+        Accomplishments posted across the region's offices and programs. Choose a year to update every chart.
+      </p>
+    </div>
+  </header>
+
+  <section class="bg-mist py-12 sm:py-16">
+    <div class="shell">
+      {data.posts.length === 0 ? (
+        <p class="text-ink/65">No accomplishments have been posted yet.</p>
+      ) : (
+        <>
+          <Dashboard client:only="react" data={data} />
+          <noscript><p class="text-ink/65">The dashboard needs JavaScript. The accomplishments are listed on the Accomplishments page.</p></noscript>
+        </>
+      )}
+    </div>
+  </section>
+</BaseLayout>
