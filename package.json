@@ -29,6 +29,7 @@
     "marked": "^18.1.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "recharts": "^3.11.0",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.5"
   }
