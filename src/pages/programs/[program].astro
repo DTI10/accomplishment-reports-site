@@ -152,7 +152,7 @@ const related = (await getPublishedPosts("articles")).filter((post) =>
   {related.length > 0 && (
     <section class="bg-mist" aria-label={`${program.label} accomplishments`}>
       <div class="shell py-14 sm:py-16">
-        <h2 class="display text-[clamp(1.5rem,2.6vw,2rem)] text-navy">Accomplishments</h2>
+        <h2 class="display text-[clamp(1.5rem,2.6vw,2rem)] text-navy">Highlight Activities</h2>
         <div class="mt-8">
           <PostList posts={related} showFilters={false} pageSize={6} morph />
         </div>
